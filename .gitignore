@@ -1,0 +1,20 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+pixi.lock
+
+# Julia files
+Project.toml
+Manifest.toml
+
+
+# Folders made with snakemake
+.snakemake/
+data/
+bin/
+flare/
+gnomix/
+Recomb-Mix/
+rfmix/
+SparsePainter/
+tmp/

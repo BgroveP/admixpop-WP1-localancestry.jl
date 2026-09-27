@@ -1,0 +1,46 @@
+
+# ============================================================
+# Experiment configuration
+# ============================================================
+
+# --- Simulation parameters ---
+## Variables
+replicates: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+            21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+generations: [6, 8, 10]
+populations: ["ancestral", "admixed"]
+markersets: ["array", "sequence"]
+lathresholds: [0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90]
+
+# --- Paths ---
+data_dir: "data"
+results_dir: "results"
+
+# --- threads --- #
+threads:
+  high: 15
+  medium: 5
+  low: 1
+  comparison: 24
+
+# --- Zenodo dataset ---
+paths:
+  zenodourl: "https://zenodo.org/records/19544041/files/simulated_data.tgz?download=1"
+  zenodocontent: ["admixed.vcf.gz", "admixed.vcf.gz.tbi", "ancestral.vcf.gz", "ancestral.vcf.gz.tbi", "global_ancestries.csv", "local_ancestries.csv"]
+  zenodopath: "data/tmp/simulated_data.tgz"
+
+# --- 1000 Genomes reference data ---
+genomes1k:
+  chr: "22"
+  maf: 0.005
+  ancestry_groups: ["AFR", "EAS", "EUR"]
+  global_ancestry_cutoff: 0.99
+
+# --- Tool versions (pinned) ---
+versions:
+  localancestry: "0.3.0"
+  flare: "browning-lab/flare"        # repo or tag/commit
+  recombmix: "ucfcbb/Recomb-Mix"
+  rfmix: "slowkoni/rfmix"
+

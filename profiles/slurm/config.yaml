@@ -1,0 +1,7 @@
+# profiles/slurm/config.yaml
+executor: slurm
+jobs: 20
+default-resources:
+  slurm_account: "admixpop"
+  mem_mb: 4000
+  runtime: 60

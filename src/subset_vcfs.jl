@@ -9,85 +9,95 @@ using QGIO
 maf = 0.005
 nreplicates = 30
 vcfpaths = ["ancestral", "admixed"]
-predmaps = ["hapmap3", "1kgenomes"]
-indsizes = 1000*collect(2:4:10)
+predmaps = ["array", "sequence"]
+generations =  ["6", "8", "10"] .* "_10"
 
-# Read homemade functions
-include("src/DUMP.jl")
-
+#
+include("DUMP.jl")
 # Cartesian product for analyses
 writes = expand_grid(replicate = 
                     1:nreplicates, 
                     group=vcfpaths, 
                     map=predmaps, 
-                    nancestral=3*indsizes, 
-                    nadmixed=indsizes)
+                    ancgens=generations, 
+                    admgens=generations)
 
 # Produce genomic maps
-## Get founder allele frequencies
-founderHT, _ = QGIO.haplotypes("data/extracted/_all.vcf.gz")
+## Get founder allele frequencies for sequence loci
+founderHT, _ = QGIO.haplotypes("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz")
 founderp = mean.(eachcol(founderHT))
-genomic_map = "$(public_home)/data/human/genomicmap/1kgenomes_chr22_all.csv"
-gmap = CSV.read(genomic_map, DataFrame)
-gmap[:, "p"] = min.(founderp, 1 .- founderp)
-select!(gmap, Not(["reference", "alternative"]))
-gmap[:, "1kgenomes"] .= true
+genomic_map = QGIO.loci("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz")
+genomic_map[:, "p"] = min.(founderp, 1 .- founderp)
+genomic_map[:, "sequence"] = genomic_map[:, "p"] .>= maf
 
-## Subset mark hapmap3 loci
-gmaphapmap3 = CSV.read("$(public_home)/data/human/genomicmap/hapmap3_chr22_all.csv", DataFrame)
-select!(gmaphapmap3, Not(["reference", "alternative", "position(cM)", "rate(cM/Mb)"]))
-gmaphapmap3.hapmap3 .= true
-leftjoin!(gmap, unique(gmaphapmap3), on=names(gmap)[1:2])
-gmap.hapmap3[ismissing.(gmap.hapmap3)] .= false
+## Join with hapmap3 loci
+genomic_map_hapmap3 = CSV.read("data/maps/hapmap3.hg38.bed", DataFrame, header = [:chromosome, :position, :omit1])
+genomic_map_hapmap3.array .= true
+leftjoin!(genomic_map, unique(genomic_map_hapmap3), on= [:chromosome, :position])
+genomic_map.array[ismissing.(genomic_map.array)] .= false
+genomic_map.array = genomic_map.array .& genomic_map.sequence
 
-# Write maps
-gmap.mafok = gmap.p .>= maf
-deleteat!(gmap, .~gmap.mafok)
-gmap.id = 1:nrow(gmap)
-gmap.hapmap3 = Bool.(gmap.hapmap3)
-gmap.hapmapid = cumsum(gmap.hapmap3)
-CSV.write("$(workdir)/map_1kgenomes_flare.ssv", gmap[:, ["chromosome", "id", "position(cM)", "position(bp)"]], delim=" ", header=false)
-CSV.write("$(workdir)/map_1kgenomes_rfmix.ssv", gmap[:, ["chromosome", "position(bp)", "position(cM)"]], delim='\t', header=false)
-CSV.write("$(workdir)/map_1kgenomes_recombmix.ssv", gmap[:, ["chromosome", "position(bp)", "p", "position(cM)"]], delim='\t', header=false)
-CSV.write("$(workdir)/map_hapmap3_flare.ssv", gmap[gmap.hapmap3, ["chromosome", "hapmapid", "position(cM)", "position(bp)"]], delim=" ", header=false)
-CSV.write("$(workdir)/map_hapmap3_rfmix.ssv", gmap[gmap.hapmap3, ["chromosome", "position(bp)", "position(cM)"]], delim='\t', header=false)
-CSV.write("$(workdir)/map_hapmap3_recombmix.ssv", gmap[gmap.hapmap3, ["chromosome", "position(bp)", "p", "position(cM)"]], delim='\t', header=false)
+# Remove loci with maf lower than threshold
+deleteat!(genomic_map, genomic_map.p .< maf)
 
-#
-i = 1
-allloci = QGIO.loci("$(public_home)/simulated/human/vcf/$(scenarios.name[i])_$(scenarios.chromosome[i])_founder_all.vcf.gz")[:, 1:3]
-allloci[:, "position(bp)"] = allloci[:, "position"]
+# Get locusid for sequence and array marker sets
+genomic_map.sequenceid = 1:nrow(genomic_map)
+genomic_map.arrayid = cumsum(genomic_map.array)
 
-tmploci = leftjoin(gmap, allloci, on=["chromosome", "position(bp)"])
-tmploci.identifier = string.(tmploci.identifier)
-tmploci.position = Int.(tmploci.position)
+# Insert recombination rates used for simulation
+genomic_map.distance =  genomic_map.position * 10^-6
+genomic_map.dummy = genomic_map.position .-1
 
-# Write all files
-for i in axes(scenarios, 1)
+# Write maps for each combination between software and marker set
+for s in predmaps
+    CSV.write("data/maps/flare_$(s).ssv", genomic_map[genomic_map[:, s], ["chromosome", "$(s)id", "distance", "position"]], delim=" ", header=false)
+    CSV.write("data/maps/rfmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "distance"]], delim='\t', header=false)
+    CSV.write("data/maps/recombmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "p", "distance"]], delim='\t', header=false)
+    CSV.write("data/maps/bcftools_$(s).bed", genomic_map[genomic_map[:, s], ["chromosome", "dummy", "position"]], delim='\t', header=false)
+end
+
+# Write genomic maps for subsetting
+
+
+# Write global ancestries
+for i in 1:nreplicates
 
     # In Paths
-    target_path = "$(public_home)/simulated/human/vcf/$(scenarios.name[i])_$(scenarios.chromosome[i])_admixed_all.vcf.gz"
-    current_path = "$(public_home)/simulated/human/vcf/$(scenarios.name[i])_$(scenarios.chromosome[i])_ancestral_all.vcf.gz"
-    founder_path = "$(public_home)/simulated/human/vcf/$(scenarios.name[i])_$(scenarios.chromosome[i])_founder_all.vcf.gz"
-    origins_path = "$(public_home)/simulated/human/global ancestries/$(scenarios.name[i])_all.csv"
-    true_origins = "$(public_home)/simulated/human/localancestry/$(scenarios.name[i])_admixed.csv"
+    globalancestries_path = "data/extracted/replicate_$(i)/global_ancestries.csv"
 
-    # Read
-    ga = CSV.read(origins_path, DataFrame, types=String)
-    CSV.write("$(workdir)/ga_rfmix_$(i).tsv", ga, delim='\t', header=false)
-    CSV.write("$(workdir)/ga_flare_$(i).ssv", ga, delim=" ", header=false)
-    CSV.write("$(workdir)/ga_own_$(i).csv", ga)
+    # Read the global ancestry file
+    ga = CSV.read(globalancestries_path, DataFrame, types=String)
 
-    for j in axes(writes, 1)
-        println("printing:")
-        println(writes[j,:])
-        if writes.group[j] != "founder"
-            tga = vcf_get_n_youngest(ga, writes.indsize[j], writes.group[j])
-            vcfpath = writes.group[j] == "current" ? current_path : target_path
-            QGIO.subset(vcfpath, "$(workdir)/$(writes.group[j])_$(writes.m[j])_$(writes.indsize[j])_$(i).vcf.gz", samples=tga.individual, loci=tmploci[tmploci[!, writes.m[j]], :])
+    # Write the global ancestry files for each software
+    CSV.write("data/extracted/replicate_$(i)/rfmix_globalancestry.tsv", ga, delim='\t', header=false)
+    CSV.write("data/extracted/replicate_$(i)/flare_globalancestry.ssv", ga, delim=" ", header=false)
+    CSV.write("data/extracted/replicate_$(i)/localancestryjl_globalancestry.csv", ga)
 
-        else
-            QGIO.subset(founder_path, "$(workdir)/$(writes.group[j])_$(writes.m[j])_all_$(i).vcf.gz", loci=tmploci[tmploci[!, writes.m[j]], :])
-        end
-    end
+end
+
+# Subset the vcf files
+writes = expand_grid(replicate = 1:nreplicates, map=predmaps, gens=generations)
+
+
+@threads for (r, m, g) in eachrow(writes)
+
+    println("rep: $(r) map: $(m) gens: $(g)")
+    flush(stdout)
+
+    # In Paths
+    ancestralvcf_path = "data/extracted/replicate_$(r)/ancestral.vcf.gz"
+    admixedvcf_path = "data/extracted/replicate_$(r)/admixed.vcf.gz"
+
+    # Read lists of focal individuals
+    individuals_ancestral_path = "data/extracted/replicate_$(r)/individuals_ancestral_gen$(g).txt"
+    individuals_admixed_path = "data/extracted/replicate_$(r)/individuals_admixed_gen$(g).txt"
+    
+    # Subset vcf files
+    run(`bcftools view -R data/maps/bcftools_$(m).bed -S $(individuals_ancestral_path) $(ancestralvcf_path) -Oz -o data/extracted/replicate_$(r)/ancestral_$(m)_$(g).vcf.gz`)
+    run(`bcftools view -R data/maps/bcftools_$(m).bed -S $(individuals_admixed_path) $(admixedvcf_path) -Oz -o data/extracted/replicate_$(r)/admixed_$(m)_$(g).vcf.gz`)
+
+    # Index the vcf files
+    run(`tabix -p vcf data/extracted/replicate_$(r)/ancestral_$(m)_$(g).vcf.gz`)
+    run(`tabix -p vcf data/extracted/replicate_$(r)/admixed_$(m)_$(g).vcf.gz`)
+    
 end

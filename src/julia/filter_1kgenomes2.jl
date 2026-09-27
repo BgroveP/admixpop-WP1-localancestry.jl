@@ -5,8 +5,8 @@ using DataFrames
 using StatsBase
 
 # Read admixture ancestries, individuals, and global ancestries
-egas = CSV.read("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maffiltered.3.Q", DataFrame, header = ["pop1", "pop2", "pop3"])
-individuals = CSV.read("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maffiltered.fam", DataFrame, header = ["individual", "omit1", "omit2", "omit3", "omit4", "omit5"])[:, [:individual]]
+egas = CSV.read("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005.3.Q", DataFrame, header = ["pop1", "pop2", "pop3"])
+individuals = CSV.read("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005.fam", DataFrame, header = ["individual", "omit1", "omit2", "omit3", "omit4", "omit5"])[:, [:individual]]
 tgas = CSV.read("data/1kgenomes/1kgenomes_all_individiuals.tsv", DataFrame, header = ["individual", "population", "superpopulation", "omit6", "omit7"])[:, 1:3]
 
 # Combine individuals with their ancestry estimates

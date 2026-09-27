@@ -26,4 +26,5 @@ rule all:
         """
 
 # 
-include: "rules/setup.smk"
+include: "rules/softwaresetup.smk"
+include: "rules/dataprep.smk"

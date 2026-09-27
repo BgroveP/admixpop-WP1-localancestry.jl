@@ -98,3 +98,4 @@ rule gnomix_setup:
         git clone https://github.com/AI-sandbox/gnomix
         pip install -r gnomix/requirements.txt
         """
+

@@ -14,10 +14,14 @@ data/
 bin/
 flare/
 gnomix/
+results/
+benchmarks/
 Recomb-Mix/
 rfmix/
 SparsePainter/
 tmp/
+logs/
 
-# 
+# Files made with snakemake
+nohup.out
 checkpoint.txt

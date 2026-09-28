@@ -1,6 +1,6 @@
 # profiles/slurm/config.yaml
 executor: slurm
-jobs: 20
+jobs: 300
 default-resources:
   slurm_account: "admixpop"
   mem_mb: 4000

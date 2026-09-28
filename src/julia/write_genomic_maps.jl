@@ -13,14 +13,14 @@ generations =  ["6", "8", "10"] .* "_10"
 
 # Produce genomic maps
 ## Get founder allele frequencies for sequence loci
-founderHT, _ = QGIO.haplotypes("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz")
+founderHT, _ = QGIO.haplotypes("data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz")
 founderp = mean.(eachcol(founderHT))
-genomic_map = QGIO.loci("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz")
+genomic_map = QGIO.loci("data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz")
 genomic_map[:, "p"] = min.(founderp, 1 .- founderp)
 genomic_map[:, "sequence"] = genomic_map[:, "p"] .>= maf
 
 ## Join with hapmap3 loci
-genomic_map_hapmap3 = CSV.read("data/maps/hapmap3.hg38.bed", DataFrame, header = [:chromosome, :position, :omit1])
+genomic_map_hapmap3 = CSV.read("data/hapmap3.hg38.bed", DataFrame, header = [:chromosome, :position, :omit1])
 genomic_map_hapmap3.array .= true
 leftjoin!(genomic_map, unique(genomic_map_hapmap3), on= [:chromosome, :position])
 genomic_map.array[ismissing.(genomic_map.array)] .= false
@@ -39,8 +39,8 @@ genomic_map.dummy = genomic_map.position .-1
 
 # Write maps for each combination between software and marker set
 for s in predmaps
-    CSV.write("data/maps/flare_$(s).ssv", genomic_map[genomic_map[:, s], ["chromosome", "$(s)id", "distance", "position"]], delim=" ", header=false)
-    CSV.write("data/maps/rfmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "distance"]], delim='\t', header=false)
-    CSV.write("data/maps/recombmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "p", "distance"]], delim='\t', header=false)
-    CSV.write("data/maps/bcftools_$(s).bed", genomic_map[genomic_map[:, s], ["chromosome", "dummy", "position"]], delim='\t', header=false)
+    CSV.write("data/flare_$(s).ssv", genomic_map[genomic_map[:, s], ["chromosome", "$(s)id", "distance", "position"]], delim=" ", header=false)
+    CSV.write("data/rfmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "distance"]], delim='\t', header=false)
+    CSV.write("data/recombmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "p", "distance"]], delim='\t', header=false)
+    CSV.write("data/bcftools_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position"]], delim='\t', header=false)
 end

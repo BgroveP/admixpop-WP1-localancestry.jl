@@ -51,26 +51,25 @@ rule rfmix_setup:
 rule recombmix_setup:
     output:
         "Recomb-Mix/RecombMix"
+    log:
+        "logs/recombmix_setup.log"
     shell:
         r"""
-        # Clone the repository (remove existing directory if it exists)
+        set -euo pipefail
         rm -rf Recomb-Mix
         git clone https://github.com/ucfcbb/Recomb-Mix.git
-        cd Recomb-Mix
-        git checkout 41616840ccdfd456c7645c4ee651450a890994d5 
+        git -C Recomb-Mix checkout 41616840ccdfd456c7645c4ee651450a890994d5
 
-        # Initiate the pixi environment for recombmix
+        cd Recomb-Mix
         pixi init .
         pixi add gcc_linux-64 gxx_linux-64 make boost-cpp
-        pixi install
-        pixi shell -c '
-        # Compile program
-                sed -i 's|^CXXFLAGS = .*|CXXFLAGS = -I$(CONDA_PREFIX)/include -std=c++17 -Os -fopenmp|' Makefile
-        sed -i 's|^LIBS = .*|LIBS = -L$(CONDA_PREFIX)/lib -Wl,-rpath,$(CONDA_PREFIX)/lib -lboost_iostreams -fopenmp|' Makefile
-        make
+        pixi run bash -c '
+            sed -i "s|^CXXFLAGS = .*|CXXFLAGS = -I\$\$CONDA_PREFIX/include -std=c++17 -Os -fopenmp|" Makefile
+            sed -i "s|^LIBS = .*|LIBS = -L\$\$CONDA_PREFIX/lib -Wl,-rpath,\$\$CONDA_PREFIX/lib -lboost_iostreams -fopenmp|" Makefile
+            make
         '
         """
-
+        
 rule sparsepainter_setup:
     output:
         "SparsePainter/SparsePainter"

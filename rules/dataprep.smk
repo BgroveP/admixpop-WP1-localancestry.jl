@@ -8,7 +8,6 @@ rule zenodo_download:
     threads: config["threads"]["high"]
     shell:
         r"""
-        mkdir -p $(dirname {output}
         aria2c -x {threads} -s {threads} -o {output} {params.url}
         """
 
@@ -26,10 +25,12 @@ rule zenodo_extract:
 # Create individual files for subsetting vcfs across generations
 rule individual_files:
     input:
-        expand("data/replicate_{r}/global_ancestries.csv", r=REPLICATES),
+        expand("data/replicate_{r}/global_ancestries.csv", r=replicates),
         "src/julia/create_individual_files.jl"
     output:
-        expand("data/replicate_{r}/individuals_{p}_gen{g}_10.txt", r=REPLICATES, g = GENERATIONS, p = POPULATIONS)
+        expand("data/replicate_{r}/individuals_{p}_gen{g}_10.txt", r=replicates, g = generations, p = populations),
+        expand("data/replicate_{r}/global_ancestries_rfmix.tsv", r=replicates),
+        expand("data/replicate_{r}/global_ancestries_flare.ssv", r=replicates)
     shell:
         "julia --project=. src/julia/create_individual_files.jl"
 
@@ -53,7 +54,7 @@ rule hapmap3_download_and_liftover:
         bzip2 -d hapmap3_r1_b36_fwd_consensus.qc.poly.recode.map.bz2
 
         # Homemade
-        awk -F'\t' -v OFS='\t' '{ print "chr"$1, $4, $4 }' hapmap3_r1_b36_fwd_consensus.qc.poly.recode.map > hapmap3.hg18.bed
+        awk -F'\t' -v OFS='\t' '{{ print "chr"$1, $4, $4 }}' hapmap3_r1_b36_fwd_consensus.qc.poly.recode.map > hapmap3.hg18.bed
         ./liftOver hapmap3.hg18.bed hg18ToHg19.over.chain.gz hapmap3.hg19.bed unmapped_hg18_to_hg19.log
         ./liftOver hapmap3.hg19.bed hg19ToHg38.over.chain.gz ../data/hapmap3.hg38.bed unmapped_hg19_to_hg38.log
         """
@@ -61,9 +62,9 @@ rule hapmap3_download_and_liftover:
 # Download 1K genomes 
 rule x1Kgenomes_download:
     output:
-        "1kgenomes_all_chr22.vcf.gz",
-        "1kgenomes_all_chr22.vcf.gz.tbi",
-        "1kgenomes_all_individuals.tsv"
+        "data/1kgenomes_all_chr22.vcf.gz",
+        "data/1kgenomes_all_chr22.vcf.gz.tbi",
+        "data/1kgenomes_all_individuals.tsv"
     shell:
         r"""
         cd data
@@ -79,7 +80,8 @@ rule admixture:
         "data/1kgenomes_all_chr22.vcf.gz.tbi",
         "data/1kgenomes_all_individuals.tsv",
         "src/julia/filter_1kgenomes.jl",
-        "src/julia/filter_1kgenomes2.jl"
+        "src/julia/filter_1kgenomes2.jl",
+        "data/all_individuals.tsv"
     output:
         "data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz",
         "data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz.tbi"
@@ -87,12 +89,12 @@ rule admixture:
         r"""
         # Download IGSR individuals
         curl \
-          -X POST \
-          -H 'Content-Type: application/x-www-form-urlencoded' \
-          --data-urlencode 'json={"fields":["name","populations.superpopulationCode"],"column_names":["individual","superpopulation"]}' \
-          'https://www.internationalgenome.org/api/beta/sample/_search/igsr_samples.tsv' \
-          -o data/all_individuals.tsv
-
+            -X POST \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            --data-urlencode 'json={{"fields":["name","populations.superpopulationCode"],"column_names":["individual","superpopulation"]}}' \
+            'https://www.internationalgenome.org/api/beta/sample/_search/igsr_samples.tsv' \
+            -o data/all_individuals.tsv
+            
         # Subset for AFR, EAS, and EUR, and find intersect between individuals files
         julia --project=. src/julia/filter_1kgenomes.jl
 
@@ -120,10 +122,10 @@ rule genomic_maps:
         "data/hapmap3.hg38.bed",
         "src/julia/write_genomic_maps.jl"
     output:
-        expand(f"data/flare_{{m}}.ssv", m = MARKERSETS),
-        expand(f"data/rfmix_{{m}}.tsv", m = MARKERSETS),
-        expand(f"data/recombmix_{{m}}.tsv", m = MARKERSETS),
-        expand(f"data/bcftools_{{m}}.bed", m = MARKERSETS)
+        expand("data/flare_{m}.ssv", m = markersets),
+        expand("data/rfmix_{m}.tsv", m = markersets),
+        expand("data/recombmix_{m}.tsv", m = markersets),
+        expand("data/bcftools_{m}.tsv", m = markersets)
     shell:
         r"""
         julia --project=. src/julia/write_genomic_maps.jl 
@@ -133,14 +135,16 @@ rule subset_vcfs:
     input:
         vcf = "data/replicate_{r}/{p}.vcf.gz",
         vcftbi = "data/replicate_{r}/{p}.vcf.gz.tbi",
-        ind = "data/replicate_{r}/individuals_{p}_gen{g}.txt",
-        gmap = "data/bcftools_{m}.bed"
+        ind = "data/replicate_{r}/individuals_{p}_gen{g}_10.txt",
+        gmap = "data/bcftools_{m}.tsv"
     output:
-        vcf = "data/replicate_{r}/{p}_{m}_{g}.vcf.gz",
-        vcftbi = "data/replicate_{r}/{p}_{m}_{g}.vcf.gz.tbi"
+        vcf = "data/replicate_{r}/{p}_{m}_{g}_10.vcf.gz",
+        vcftbi = "data/replicate_{r}/{p}_{m}_{g}_10.vcf.gz.tbi"
+    threads: 4
+    resources:
+        runtime = 180
     shell:
         r"""
-            bcftools view -R {input.gmap} -S {input.ind} {input.vcf} -Oz -o {output.vcf}
+            bcftools view --threads {threads} -T {input.gmap} -S {input.ind} {input.vcf} -Oz -o {output.vcf}
             tabix -p vcf {output.vcf}
         """
-    

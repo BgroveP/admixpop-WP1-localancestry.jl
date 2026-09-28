@@ -5,9 +5,9 @@ using DataFrames
 using StatsBase
 
 # Read admixture ancestries, individuals, and global ancestries
-egas = CSV.read("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005.3.Q", DataFrame, header = ["pop1", "pop2", "pop3"])
-individuals = CSV.read("data/1kgenomes/1kgenomes_AFR_EAS_EUR_chr22_maf005.fam", DataFrame, header = ["individual", "omit1", "omit2", "omit3", "omit4", "omit5"])[:, [:individual]]
-tgas = CSV.read("data/1kgenomes/1kgenomes_all_individiuals.tsv", DataFrame, header = ["individual", "population", "superpopulation", "omit6", "omit7"])[:, 1:3]
+egas = CSV.read("data/1kgenomes_AFR_EAS_EUR_chr22_maf005.3.Q", DataFrame, header = ["pop1", "pop2", "pop3"])
+individuals = CSV.read("data/1kgenomes_AFR_EAS_EUR_chr22_maf005.fam", DataFrame, header = ["individual", "omit1", "omit2", "omit3", "omit4", "omit5"])[:, [:individual]]
+tgas = CSV.read("data/1kgenomes_all_individuals.tsv", DataFrame, header = ["individual", "population", "superpopulation", "omit6", "omit7"])[:, 1:3]
 
 # Combine individuals with their ancestry estimates
 individuals.pop1 = egas.pop1
@@ -36,6 +36,6 @@ sort(combine(groupby(gas, [:superpopulation, :population]), :keep .=> [length, m
 
 # Print remaining
 deleteat!(gas, .~gas.keep)
-CSV.write("data/1kgenomes/1kgenomes_AFR_EAS_EUR_individuals_ga99p.txt", gas[:,[:individual]], header = false)
+CSV.write("data/1kgenomes_AFR_EAS_EUR_individuals_ga99p.txt", gas[:,[:individual]], header = false)
 
 

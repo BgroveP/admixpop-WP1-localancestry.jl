@@ -23,3 +23,9 @@ bcftools = ">=1.24,<2"
 plink = ">=1.90b7.7,<2"
 snakemake = ">=9.27.0,<10"
 snakemake-executor-plugin-slurm = ">=2.8.0,<3"
+zlib = ">=1.3.2,<2"
+
+
+[activation.env]
+JULIA_DEPOT_PATH = "$CONDA_PREFIX/share/julia depot"
+#JULIA_PKG_OFFLINE = "true"   # avoids registry checks; optional

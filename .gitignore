@@ -6,21 +6,21 @@ pixi.lock
 # Julia files
 Project.toml
 Manifest.toml
-
+deps/localancestry.so
 
 # Folders made with snakemake
-.snakemake/
-data/
-bin/
-flare/
-gnomix/
-results/
-benchmarks/
-Recomb-Mix/
-rfmix/
-SparsePainter/
-tmp/
-logs/
+.snakemake
+data
+bin
+flare
+gnomix
+results
+benchmarks
+Recomb-Mix
+rfmix
+SparsePainter
+tmp
+logs
 
 # Files made with snakemake
 nohup.out

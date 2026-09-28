@@ -1,3 +1,4 @@
+import re
 
 # Configfile
 configfile: "config.yaml"
@@ -7,9 +8,21 @@ replicates = config["replicates"]       # r
 generations = config["generations"]     # g
 populations = config["populations"]     # p
 markersets = config["markersets"]       # m
-lathresholds = config["lathresholds"]   # t
+lathresholds = config["lathresholds"]  # t
 
-# 
+def wc_constraint(values):
+    alts = sorted((re.escape(str(v)) for v in values), key=len, reverse=True)
+    return "|".join(alts)
+
+wildcard_constraints:
+    r = wc_constraint(replicates),
+    g = wc_constraint(generations),
+    p = wc_constraint(populations),
+    m = wc_constraint(markersets),
+    t = wc_constraint(lathresholds)
+
+
+#
 zenodocontent = config["paths"]["zenodocontent"]
 
 # Download the compressed file from Zenodo
@@ -22,7 +35,7 @@ rule all:
         "SparsePainter/SparsePainter",
         "gnomix/gnomix.py",
         expand("data/replicate_{r}/{p}_{m}_{g}_10.vcf.gz", r = replicates, m = markersets, p =populations, g = generations),
-        expand("results/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.tsv", r = replicates, m = markersets, p =populations, g1 = generations, g2 = generations, t = lathresholds),
+        expand("results/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv", r = replicates, m = markersets, p =populations, g1 = generations, g2 = generations, t = lathresholds),
         expand("results/rfmix/{r}_{m}_{g1}_{g2}.fb.tsv", r = replicates, m = markersets, p =populations, g1 = generations, g2 = generations),
         expand("results/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz", r = replicates, m = markersets, p =populations, g1 = generations, g2 = generations)
     shell:

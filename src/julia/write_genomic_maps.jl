@@ -43,4 +43,5 @@ for s in predmaps
     CSV.write("data/rfmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "distance"]], delim='\t', header=false)
     CSV.write("data/recombmix_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position", "p", "distance"]], delim='\t', header=false)
     CSV.write("data/bcftools_$(s).tsv", genomic_map[genomic_map[:, s], ["chromosome", "position"]], delim='\t', header=false)
+    CSV.write("data/sparsepainter_$(s).tsv", genomic_map[genomic_map[:, s], ["position", "distance"]], delim='\t', header=["pd", "gd"])
 end

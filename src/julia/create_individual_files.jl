@@ -14,8 +14,8 @@ for r in replicatepaths
     transform!(groupby(globalancestries, :population), :population => (x -> 5 .+ Int.(ceil.(collect(1:length(x)) ./ 2000))) => :generation)
 
     # Write global ancestries
-    CSV.write("$(r)/global_ancestries_rfmix.tsv", globalancestries[:, [:individual, :population]], delim='\t', header=false)
-    CSV.write("$(r)/global_ancestries_flare.ssv", globalancestries[:, [:individual, :population]], delim=" ", header=false)
+    CSV.write("$(r)/global_ancestries_rfmix.tsv", globalancestries[globalancestries.population .!= "admixed", [:individual, :population]], delim='\t', header=false)
+    CSV.write("$(r)/global_ancestries_flare.ssv", globalancestries[globalancestries.population .!= "admixed", [:individual, :population]], delim=" ", header=false)
 
     for s in steps
         tmpga = copy(globalancestries)

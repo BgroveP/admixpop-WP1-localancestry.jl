@@ -10,7 +10,7 @@ Pkg.add(name="LocalAncestry", version="0.3.0")
 Pkg.add(url= "https://github.com/BgroveP/QGIO.jl", rev="c196f98fbffc372913de72b4c22af4207cba2f0f")
 
 # Compile system image
-
+using PackageCompiler
 create_sysimage(
     [:CSV, :DataFrames, :LocalAncestry];
     sysimage_path = "deps/localancestry.so",

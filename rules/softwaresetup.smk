@@ -2,8 +2,10 @@
 # Setup , LocalAncestry.jl, FLARE, Recombmix, and RFMix
 rule julia_setup:
     input:
+        "deps/precompile_workload.jl",
         srcfile = "src/julia/setup.jl"
     output:
+        "deps/localancestry.so",
         manifestfile = "Manifest.toml",
         projectfile = "Project.toml"
     shell:

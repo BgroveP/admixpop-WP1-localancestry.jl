@@ -1,9 +1,11 @@
 
 rule estimate_localancestryjl:
     input:
+        "src/julia/setup.jl",
+        "deps/localancestry.so",
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
         admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",
-        globalancestries = "data/replicate_{r}/global_ancestries.csv",
+        globalancestries = "data/replicate_{r}/global_ancestries.csv"
     output:
         result = "results/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv",
     threads: 24
@@ -11,7 +13,7 @@ rule estimate_localancestryjl:
         mem_mb = 30000,
         runtime = 180
     benchmark:
-        "benchmarks/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv"
+        "benchmarks/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.tsv"
     shell:
         r"""
         julia -J deps/localancestry.so --startup-file=no --project=. -t {threads} -e '
@@ -48,7 +50,7 @@ rule estimate_rfmix:
     benchmark:
         "benchmarks/rfmix/{r}_{m}_{g1}_{g2}.tsv"
     shell:
-        "rfmix/rfmix --n-threads={threads} -f {input.admixed} -r {input.ancestral} -m {input.globalancestries} -g {input.genomicmap} -o results/rfmix_{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} --chromosome=chr22"
+        "rfmix/rfmix --n-threads={threads} -f {input.admixed} -r {input.ancestral} -m {input.globalancestries} -g {input.genomicmap} -o results/rfmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} --chromosome=chr22"
 
 
 rule estimate_flare:

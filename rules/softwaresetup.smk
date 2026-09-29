@@ -53,8 +53,6 @@ rule rfmix_setup:
 rule recombmix_setup:
     output:
         "Recomb-Mix/RecombMix"
-    log:
-        "logs/recombmix_setup.log"
     shell:
         r"""
         set -euo pipefail
@@ -98,5 +96,7 @@ rule gnomix_setup:
         rm -rf gnomix
         git clone https://github.com/AI-sandbox/gnomix
         pip install -r gnomix/requirements.txt
+        cd gnomix
+        source download_pretrained_models.sh
         """
 

@@ -7,6 +7,7 @@ configfile: "config.yaml"
 replicates = config["replicates"]       # r
 generations = config["generations"]     # g
 populations = config["populations"]     # p
+cohorts = config["cohorts"]     # p
 markersets = config["markersets"]       # m
 lathresholds = config["lathresholds"]  # t
 
@@ -18,6 +19,7 @@ wildcard_constraints:
     r = wc_constraint(replicates),
     g = wc_constraint(generations),
     p = wc_constraint(populations),
+    c = wc_constraint(cohorts),
     m = wc_constraint(markersets),
     t = wc_constraint(lathresholds)
 
@@ -34,10 +36,10 @@ rule all:
         "Recomb-Mix/RecombMix",
         "SparsePainter/SparsePainter",
         "gnomix/gnomix.py",
-        expand("data/replicate_{r}/{p}_{m}_{g}_10.vcf.gz", r = replicates, m = markersets, p =populations, g = generations),
-        expand("results/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv", r = replicates, m = markersets, p =populations, g1 = generations, g2 = generations, t = lathresholds),
-        expand("results/rfmix/{r}_{m}_{g1}_{g2}.fb.tsv", r = replicates, m = markersets, p =populations, g1 = generations, g2 = generations),
-        expand("results/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz", r = replicates, m = markersets, p =populations, g1 = generations, g2 = generations)
+        expand("data/replicate_{r}/{c}_{m}_{g}_10.vcf.gz", r = replicates, m = markersets, c = cohorts, g = generations),
+        expand("results/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations, t = lathresholds),
+        expand("results/rfmix/{r}_{m}_{g1}_{g2}.fb.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations),
+        expand("results/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz", r = replicates, m = markersets, g1 = generations, g2 = generations)
     shell:
         r"""
         julia --project=. -e 'println("WOHOO")'

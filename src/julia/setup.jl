@@ -16,3 +16,4 @@ create_sysimage(
     sysimage_path = "deps/localancestry.so",
     precompile_execution_file = "deps/precompile_workload.jl"
 )
+

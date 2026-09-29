@@ -28,8 +28,9 @@ rule individual_files:
         expand("data/replicate_{r}/global_ancestries.csv", r=replicates),
         "src/julia/create_individual_files.jl"
     output:
-        expand("data/replicate_{r}/individuals_{p}_gen{g}_10.txt", r=replicates, g = generations, p = populations),
+        expand("data/replicate_{r}/individuals_{c}_gen{g}_10.txt", r=replicates, g = generations, c = cohorts),
         expand("data/replicate_{r}/global_ancestries_rfmix.tsv", r=replicates),
+        expand("data/replicate_{r}/global_ancestries_gnomix_{g}.tsv", r=replicates, g = generations),
         expand("data/replicate_{r}/global_ancestries_flare.ssv", r=replicates)
     shell:
         "julia --project=. src/julia/create_individual_files.jl"
@@ -133,13 +134,13 @@ rule genomic_maps:
 
 rule subset_vcfs:
     input:
-        vcf = "data/replicate_{r}/{p}.vcf.gz",
-        vcftbi = "data/replicate_{r}/{p}.vcf.gz.tbi",
-        ind = "data/replicate_{r}/individuals_{p}_gen{g}_10.txt",
+        vcf = "data/replicate_{r}/{c}.vcf.gz",
+        vcftbi = "data/replicate_{r}/{c}.vcf.gz.tbi",
+        ind = "data/replicate_{r}/individuals_{c}_gen{g}_10.txt",
         gmap = "data/bcftools_{m}.tsv"
     output:
-        vcf = "data/replicate_{r}/{p}_{m}_{g}_10.vcf.gz",
-        vcftbi = "data/replicate_{r}/{p}_{m}_{g}_10.vcf.gz.tbi"
+        vcf = "data/replicate_{r}/{c}_{m}_{g}_10.vcf.gz",
+        vcftbi = "data/replicate_{r}/{c}_{m}_{g}_10.vcf.gz.tbi"
     threads: 4
     resources:
         runtime = 180

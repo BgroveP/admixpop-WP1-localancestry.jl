@@ -5,7 +5,7 @@ rule zenodo_download:
         config["paths"]["zenodopath"]
     params:
         url = config["paths"]["zenodourl"]
-    threads: config["threads"]["high"]
+    threads: 15
     shell:
         r"""
         aria2c -x {threads} -s {threads} -o {output} {params.url}
@@ -82,8 +82,10 @@ rule admixture:
         "data/1kgenomes_all_individuals.tsv",
         "src/julia/filter_1kgenomes.jl",
         "src/julia/filter_1kgenomes2.jl",
-        "data/all_individuals.tsv"
+        "Manifest.toml",
+        "Project.toml"
     output:
+        "data/all_individuals.tsv",
         "data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz",
         "data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz.tbi"
     shell:
@@ -126,6 +128,7 @@ rule genomic_maps:
         expand("data/flare_{m}.ssv", m = markersets),
         expand("data/rfmix_{m}.tsv", m = markersets),
         expand("data/recombmix_{m}.tsv", m = markersets),
+        expand("data/sparsepainter_{m}.tsv", m = markersets),
         expand("data/bcftools_{m}.tsv", m = markersets)
     shell:
         r"""

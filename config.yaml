@@ -22,13 +22,6 @@ replicates: [1, 2, 3]
 data_dir: "data"
 results_dir: "results"
 
-# --- threads --- #
-threads:
-  high: 15
-  medium: 5
-  low: 1
-  comparison: 24
-
 # --- Zenodo dataset ---
 paths:
   zenodourl: "https://zenodo.org/records/19544041/files/simulated_data.tgz?download=1"

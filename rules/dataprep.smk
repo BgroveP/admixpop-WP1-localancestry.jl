@@ -83,13 +83,17 @@ rule admixture:
         "src/julia/filter_1kgenomes.jl",
         "src/julia/filter_1kgenomes2.jl",
         "Manifest.toml",
-        "Project.toml"
+        "Project.toml",
+        "admixture/admixture"
     output:
         "data/all_individuals.tsv",
         "data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz",
         "data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz.tbi"
     shell:
         r"""
+        # S
+        ulimit -s unlimited
+        
         # Download IGSR individuals
         curl \
             -X POST \
@@ -112,7 +116,7 @@ rule admixture:
         # Run admixture
         cd data/
         plink --vcf 1kgenomes_AFR_EAS_EUR_chr22_maf005.vcf.gz --make-bed --out 1kgenomes_AFR_EAS_EUR_chr22_maf005
-        admixture 1kgenomes_AFR_EAS_EUR_chr22_maf005.bed 3 
+        ../admixture/admixture 1kgenomes_AFR_EAS_EUR_chr22_maf005.bed 3
         cd ..
         julia --project=. src/julia/filter_1kgenomes2.jl
         bcftools view -S data/1kgenomes_AFR_EAS_EUR_individuals_ga99p.txt -Oz -o data/1kgenomes_AFR_EAS_EUR_chr22_maf005_ga99p.vcf.gz data/1kgenomes_AFR_EAS_EUR_chr22_maf005.vcf.gz

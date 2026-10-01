@@ -12,6 +12,7 @@ deps/localancestry.so
 .snakemake
 data
 bin
+admixture
 flare
 gnomix
 results

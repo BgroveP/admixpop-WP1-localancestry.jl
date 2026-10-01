@@ -98,3 +98,14 @@ rule gnomix_setup:
         pip install -r gnomix/requirements.txt
         """
 
+
+rule admixture_setup:
+    output:
+        "admixture/admixture"
+    shell:
+        r"""
+        wget https://dalexander.github.io/admixture/binaries/admixture_linux-1.4.0.tar.gz
+        tar xf admixture_linux-1.4.0.tar.gz
+        rm -f admixture_linux-1.4.0.tar.gz
+        mv admixture_linux-1.4.0 ./admixture
+        """

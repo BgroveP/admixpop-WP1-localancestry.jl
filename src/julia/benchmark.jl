@@ -33,3 +33,4 @@ s2 = transform(groupby(s1, [:ancgen, :admgen, :markerset]),
 [:software, :s_mean] => ((x,y) -> y ./ y[x .== "localancestryjl"]) => :s,
 [:software, :max_rss_mean] => ((x,y) -> y ./ y[x .== "localancestryjl"]) => :rss)
 s3 = combine(groupby(s2, :software), :s .=> [mean, median, minimum, maximum], :rss .=> [mean, median, minimum, maximum], )
+s4 = combine(groupby(o, :software), :s .=> [mean, minimum, maximum], :max_rss .=> [mean, minimum, maximum], )

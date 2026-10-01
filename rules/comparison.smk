@@ -1,0 +1,54 @@
+
+rule accuracy_flare:
+    input:
+        "src/julia/accuracy_flare.jl",
+        "src/julia/READ_FLARE.jl",
+        "src/julia/DUMP.jl",
+        est = "results/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
+        tru = "data/replicate_{r}/local_ancestries.csv"
+    output:
+        path = "results/flare/{r}_{m}_{g1}_{g2}.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/accuracy_flare.jl {input.est} {input.tru} {output.path}
+        """
+
+rule accuracy_rfmix:
+    input:
+        "src/julia/accuracy_rfmix.jl",
+        "src/julia/READ_RFMIX.jl",
+        "src/julia/DUMP.jl",
+        est = "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.msp.tsv",
+        tru = "data/replicate_{r}/local_ancestries.csv"
+    output:
+        path = "results/accuracy/rfmix/{r}_{m}_{g1}_{g2}.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/accuracy_rfmix.jl {input.est} {input.tru} {output.path}
+        """
+
+rule accuracy_recombmix:
+    input:
+        "src/julia/accuracy_recombmix.jl",
+        "src/julia/READ_RECOMBMIX.jl",
+        "src/julia/DUMP.jl",
+        est = "results/localancestry/recombmix/{r}_{m}_{g1}_{g2}.msp.tsv",
+        tru = "data/replicate_{r}/local_ancestries.csv"
+    output:
+        path = "results/accuracy/recombmix/{r}_{m}_{g1}_{g2}.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/accuracy_recombmix.jl {input.est} {input.tru} {output.path}
+        """
+
+rule accuracy_localancestryljl:
+    input:
+        "src/julia/accuracy_localancestryjl.jl",
+        est = "results/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}.msp.tsv",
+        tru = "data/replicate_{r}/local_ancestries.csv"
+    output:
+        path = "results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/accuracy_localancestryjl.jl {input.est} {input.tru} {output.path}
+        """

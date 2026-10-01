@@ -18,6 +18,8 @@ def wc_constraint(values):
 wildcard_constraints:
     r = wc_constraint(replicates),
     g = wc_constraint(generations),
+    g1 = wc_constraint(generations),
+    g2 = wc_constraint(generations),
     p = wc_constraint(populations),
     c = wc_constraint(cohorts),
     m = wc_constraint(markersets),
@@ -42,7 +44,7 @@ rule all:
         expand("results/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz", r = replicates, m = markersets, g1 = generations, g2 = generations),
         expand("results/gnomix/{r}_{m}_{g1}_{g2}/query_results.msp", r = replicates, m = markersets, g1 = generations, g2 = generations),
         expand("results/recombmix/{r}_{m}_{g1}_{g2}/inferred_local_ancestral_values.txt", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/sparsepainter/{r}_{m}_{g1}_{g2}.prob.txt.gz", r = replicates, m = markersets, g1 = generations, g2 = generations)
+        expand("results/sparsepainter/{r}_{m}_{g1}_{g2}_prob.txt.gz", r = replicates, m = markersets, g1 = generations, g2 = generations)
     shell:
         r"""
         julia --project=. -e 'println("WOHOO")'

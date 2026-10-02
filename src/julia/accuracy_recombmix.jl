@@ -33,6 +33,10 @@ gmap2.array .= true
 leftjoin!(gmap, gmap2, on=names(gmap))
 gmap.array[ismissing.(gmap.array)] .= false
 
+# Convert basepairs strings to ranges
+est.basepairs = UnitRange{Int}.(parse.(Int, replace.(est.basepairs, r"\:.+" => "")), parse.(Int, replace.(est.basepairs, r".+\:" => "")))
+tru.basepairs = UnitRange{Int}.(parse.(Int, replace.(tru.basepairs, r"\:.+" => "")), parse.(Int, replace.(tru.basepairs, r".+\:" => "")))
+
 # Get accuracy
 accuracies = evaluate(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect

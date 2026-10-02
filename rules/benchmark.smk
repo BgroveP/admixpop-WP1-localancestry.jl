@@ -4,10 +4,10 @@ rule accuracy_flare:
         "src/julia/accuracy_flare.jl",
         "src/julia/READ_FLARE.jl",
         "src/julia/DUMP.jl",
-        est = "results/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
+        est = "results/localancestry/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
-        path = "results/flare/{r}_{m}_{g1}_{g2}.csv"
+        path = "results/accuracy/flare/{r}_{m}_{g1}_{g2}.csv"
     shell:
         r"""
             julia --project=. src/julia/accuracy_flare.jl {input.est} {input.tru} {output.path}
@@ -44,11 +44,26 @@ rule accuracy_recombmix:
 rule accuracy_localancestryljl:
     input:
         "src/julia/accuracy_localancestryjl.jl",
-        est = "results/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}.msp.tsv",
+        est = "results/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv",
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
-        path = "results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}.csv"
+        path = "results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv"
     shell:
         r"""
             julia --project=. src/julia/accuracy_localancestryjl.jl {input.est} {input.tru} {output.path}
+        """
+
+
+rule accuracy_gnomix:
+    input:
+        "src/julia/accuracy_gnomix.jl",
+        "src/julia/read_rfmix.jl",
+        "src/julia/collection.jl",
+        est = "results/localancestry/gnomix/{r}_{m}_{g1}_{g2}/query_results.msp",
+        tru = "data/replicate_{r}/local_ancestries.csv"
+    output:
+        path = "results/accuracy/gnomix/{r}_{m}_{g1}_{g2}.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/accuracy_gnomix.jl {input.est} {input.tru} {output.path}
         """

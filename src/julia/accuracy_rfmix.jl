@@ -36,7 +36,7 @@ gmappath2 = "data/rfmix_array.tsv"
 
 # Read
 println("Reading data")
-est = read_rfmix(vcfpath, QGIO.loci(replace(truelapath, "local_ancestries.csv" => "admixed.vcf.gz")))
+est = read_rfmix(vcfpath, QGIO.loci(replace(truelapath, "local_ancestries.csv" => "admixed_sequence_10_10.vcf.gz")))
 tru = CSV.read(truelapath, DataFrame)
 gmap = CSV.read(gmappath, DataFrame, header = ["chromosome", "position(bp)", "distance"])
 gmap2 = CSV.read(gmappath2, DataFrame, header = ["chromosome", "position(bp)", "distance"])
@@ -45,6 +45,9 @@ gmap2 = CSV.read(gmappath2, DataFrame, header = ["chromosome", "position(bp)", "
 gmap2.array .= true
 leftjoin!(gmap, gmap2, on=names(gmap))
 gmap.array[ismissing.(gmap.array)] .= false
+
+# Create range from string
+tru.basepairs = UnitRange{Int}.(parse.(Int, replace.(tru.basepairs, r"\:.+" => "")), parse.(Int, replace.(tru.basepairs, r".+\:" => "")))
 
 # Get accuracy
 println("Calculating the accuracies")

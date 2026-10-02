@@ -28,9 +28,11 @@ o.ancgen    = parse.(Int, getindex.(parts, 3))
 o.admgen    = parse.(Int, getindex.(parts, 4))
 
 # Summary
-s1 = sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset]), [:s, :max_rss] .=> mean), :s_mean)
-s2 = transform(groupby(s1, [:ancgen, :admgen, :markerset]), 
-[:software, :s_mean] => ((x,y) -> y ./ y[x .== "localancestryjl"]) => :s,
-[:software, :max_rss_mean] => ((x,y) -> y ./ y[x .== "localancestryjl"]) => :rss)
-s3 = combine(groupby(s2, :software), :s .=> [mean, median, minimum, maximum], :rss .=> [mean, median, minimum, maximum], )
-s4 = combine(groupby(o, :software), :s .=> [mean, minimum, maximum], :max_rss .=> [mean, minimum, maximum], )
+# Number of finishes analyses 
+unstack(sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset]), :s => length => :n), :n), :software, :n)
+
+# Statistics
+summary = sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset]), [:s, :max_rss] .=> mean), :s_mean)
+unstacked_summary_time = unstack(summary[:, Not(:max_rss_mean)], :software, :s_mean)
+unstacked_summary_RAM = unstack(summary[:, Not(:s_mean)], :software, :max_rss_mean)
+unstacked_summary.rel = unstacked_summary.flare ./ unstacked_summary.localancestryjl

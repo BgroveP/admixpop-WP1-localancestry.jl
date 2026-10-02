@@ -14,12 +14,17 @@ outpath = ARGS[3]
 # Hard-coded variables
 gmappath = "data/rfmix_sequence.tsv"
 gmappath2 = "data/rfmix_array.tsv"
+include("DUMP.jl")
 
 # Read and calculate accuracy
 est = CSV.read(vcfpath, DataFrame)
 tru = CSV.read(truelapath, DataFrame)
 gmap = CSV.read(gmappath, DataFrame, header = ["chromosome", "position(bp)", "distance"])
 gmap2 = CSV.read(gmappath2, DataFrame, header = ["chromosome", "position(bp)", "distance"])
+
+# Convert basepairs strings to ranges
+est.basepairs = UnitRange{Int}.(parse.(Int, replace.(est.basepairs, r"\:.+" => "")), parse.(Int, replace.(est.basepairs, r".+\:" => "")))
+tru.basepairs = UnitRange{Int}.(parse.(Int, replace.(tru.basepairs, r"\:.+" => "")), parse.(Int, replace.(tru.basepairs, r".+\:" => "")))
 
 # Determine sequence and array loci
 gmap2.array .= true

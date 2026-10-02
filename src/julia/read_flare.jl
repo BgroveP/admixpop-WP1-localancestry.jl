@@ -3,6 +3,7 @@ using QGIO
 using LocalAncestry
 
 function read_flare(path)
+    
     outcols = [:individual, :chromosome, :haplotype, :basepairs, :ancestry]
 
     populations = replace.(split(replace(QGIO.header(path)[end], r".+\<" => "", ">" => "", '\n' => ""), ","), r"=." => "")
@@ -30,12 +31,17 @@ function read_flare(path)
     end
 
     popdict = Dict(populations .=> 1)
+    dicttranslate = Dict(keys(popdict) .=> populations)
     out = LocalAncestry.anc_reduce(a, samples, popdict, UnitRange.(loci.position, loci.position))
     out.basepairs = out.block
     out.chromosome .= loci.chromosome[1]
 
+    for i in axes(out, 1)
+        out.ancestry[i] = dicttranslate[out.ancestry[i]]
+    end
     return out[:, outcols]
 end
+
 
 function _buffer_field!(c, b, f)
     # Initialize
@@ -75,3 +81,4 @@ end
 function ifield(f, p)
     return findfirst(split(f, ":") .== p)
 end
+

@@ -16,9 +16,9 @@ include("READ_FLARE.jl")
 include("DUMP.jl")
 
 # Test
-#vcfpath = "results/flare/29_array_10_10.anc.vcf.gz"
-#truelapath = "data/replicate_29/local_ancestries.csv"
-#outpath = "results/flare/29_array_10_10.csv"
+#vcfpath = "results/localancestry/flare/1_array_6_6.anc.vcf.gz"
+#truelapath = "data/replicate_1/local_ancestries.csv"
+#outpath = "results/accuracy/flare/1_array_6_6.csv"
 
 # Hard-coded paths
 gmappath = "data/rfmix_sequence.tsv"
@@ -35,6 +35,9 @@ gmap2.array .= true
 leftjoin!(gmap, gmap2, on=names(gmap))
 gmap.array[ismissing.(gmap.array)] .= false
 
+# Convert basepairs strings to ranges
+tru.basepairs = UnitRange{Int}.(parse.(Int, replace.(tru.basepairs, r"\:.+" => "")), parse.(Int, replace.(tru.basepairs, r".+\:" => "")))
+
 # Get accuracy
 accuracies = evaluate(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
@@ -43,3 +46,4 @@ gmap.unassigned = accuracies.punassigned
 
 # Write output
 CSV.write(outpath, gmap)
+

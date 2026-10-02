@@ -1,8 +1,11 @@
 
 function read_recombmix(infile, outfile, chromosome)
     dump = readlines(infile)
-    populations = replace.(split(replace(dump[1], r".+\: " => ""), '\t'), r"=.+" => "")
-    popdict = Dict(string.(0:(length(populations)-1)) .=> populations)
+    posi = findfirst(dump .== "#Position") - 1
+    resi = findfirst(dump .== "#Result") + 1
+    populations = split.(dump[2:posi], '\t')
+    
+    popdict = Dict(getindex.(populations, 2) .=> getindex.(populations, 1))
     hapdict = Dict('0':'1' .=> 1:2)
 
     # Write
@@ -11,8 +14,8 @@ function read_recombmix(infile, outfile, chromosome)
     ## Write header
     println(file, "individual,chromosome,haplotype,basepairs,ancestry")
 
-    # Write
-    for s in dump[2:end]
+    # Write 
+    for s in dump[resi:end]
         stmp = split(s, '\t')
         individual = replace(stmp[1], r"_.$" => "")
             for b in 4:3:length(stmp)

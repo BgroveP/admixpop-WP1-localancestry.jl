@@ -12,7 +12,7 @@ Pkg.add(url= "https://github.com/BgroveP/QGIO.jl", rev="c196f98fbffc372913de72b4
 # Compile system image
 using PackageCompiler
 create_sysimage(
-    [:CSV, :DataFrames, :LocalAncestry];
+    [:CSV, :DataFrames, :LocalAncestry, :CodecZlib];
     sysimage_path = "deps/localancestry.so",
     precompile_execution_file = "deps/precompile_workload.jl"
 )

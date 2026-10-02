@@ -7,5 +7,5 @@ cluster-generic-submit-cmd:
     --output=logs/slurm/%x.txt
 jobs: 400
 default-resources:
-  mem_mb: 4000
+  mem_mb: 5000
   runtime: 60

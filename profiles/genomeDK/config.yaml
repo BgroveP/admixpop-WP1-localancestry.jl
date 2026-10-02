@@ -5,6 +5,6 @@ latency-wait: 60
 retries: 1  
 default-resources:
   slurm_account: "admixpop"
-  mem_mb: 4000
+  mem_mb: 5000
   runtime: 60
   slurm_nodelist: "cn-[1060-1110]"

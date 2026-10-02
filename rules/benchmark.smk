@@ -76,7 +76,9 @@ rule accuracy_sparsepainter:
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
         path = "results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv"
+    threads:
+        10
     shell:
         r"""
-            julia --project=. src/julia/accuracy_sparsepainter.jl {input.est} {input.tru} {output.path}
+            julia -t {threads} --project=. src/julia/accuracy_sparsepainter.jl {input.est} {input.tru} {output.path}
         """

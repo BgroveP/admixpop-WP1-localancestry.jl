@@ -8,6 +8,8 @@ rule julia_setup:
         "deps/localancestry.so",
         manifestfile = "Manifest.toml",
         projectfile = "Project.toml"
+    resources:
+        mem_mb = 15000,
     shell:
         r"""
         rm -f {output.manifestfile}

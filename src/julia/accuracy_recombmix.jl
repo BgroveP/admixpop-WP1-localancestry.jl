@@ -5,6 +5,7 @@ using DataFrames
 using LocalAncestry
 using QGIO
 using Base.Threads
+using StatsBase
 
 include("read_recombmix.jl")
 

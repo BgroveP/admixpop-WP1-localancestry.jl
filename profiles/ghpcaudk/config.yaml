@@ -6,6 +6,7 @@ cluster-generic-submit-cmd:
     --time={resources.runtime}
     --output=logs/slurm/%x.txt
 jobs: 400
+retries: 5
 default-resources:
   mem_mb: 5000
   runtime: 60

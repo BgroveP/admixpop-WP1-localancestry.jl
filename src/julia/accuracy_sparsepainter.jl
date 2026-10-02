@@ -5,6 +5,7 @@ using DataFrames
 using LocalAncestry
 using QGIO
 using Base.Threads
+using StatsBase
 
 # Get ARGS
 vcfpath = ARGS[1]

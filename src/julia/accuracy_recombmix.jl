@@ -6,7 +6,7 @@ using LocalAncestry
 using QGIO
 using Base.Threads
 
-include("READ_RECOMBMIX.jl")
+include("read_recombmix.jl")
 
 
 # Get ARGS

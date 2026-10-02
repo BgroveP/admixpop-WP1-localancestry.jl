@@ -12,8 +12,8 @@ truelapath = ARGS[2]
 outpath = ARGS[3]
 
 # Read custom function
-include("READ_FLARE.jl")
-include("DUMP.jl")
+include("read_flare.jl")
+include("collection.jl")
 
 # Test
 #vcfpath = "results/localancestry/flare/1_array_6_6.anc.vcf.gz"

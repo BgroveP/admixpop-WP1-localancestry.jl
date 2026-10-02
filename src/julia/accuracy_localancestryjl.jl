@@ -14,7 +14,7 @@ outpath = ARGS[3]
 # Hard-coded variables
 gmappath = "data/rfmix_sequence.tsv"
 gmappath2 = "data/rfmix_array.tsv"
-include("DUMP.jl")
+include("collection.jl")
 
 # Read and calculate accuracy
 est = CSV.read(vcfpath, DataFrame)

@@ -67,3 +67,16 @@ rule accuracy_gnomix:
         r"""
             julia --project=. src/julia/accuracy_gnomix.jl {input.est} {input.tru} {output.path}
         """
+
+rule accuracy_sparsepainter:
+    input:
+        "src/julia/accuracy_sparsepainter.jl",
+        "src/julia/collection.jl",
+        est = "results/localancestry/gnomix/{r}_{m}_{g1}_{g2}/1_array_6_6_prob.txt.gz",
+        tru = "data/replicate_{r}/local_ancestries.csv"
+    output:
+        path = "results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/accuracy_sparsepainter.jl {input.est} {input.tru} {output.path}
+        """

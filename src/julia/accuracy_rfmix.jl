@@ -22,8 +22,8 @@ println("
 
 # Read custom function
 println("Reading custom functions")
-include("READ_RFMIX.jl")
-include("DUMP.jl")
+include("read_rfmix.jl")
+include("collection.jl")
 
 # Test
 #vcfpath = "results/flare/29_array_10_10.anc.vcf.gz"

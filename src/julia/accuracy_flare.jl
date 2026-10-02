@@ -43,6 +43,7 @@ accuracies = evaluate(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
 gmap.incorrect = accuracies.pincorrect
 gmap.unassigned = accuracies.punassigned
+println(mean(gmap.accuracy[Bool.(gmap.array)]))
 
 # Write output
 CSV.write(outpath, gmap)

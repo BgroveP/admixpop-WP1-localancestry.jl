@@ -40,11 +40,11 @@ rule all:
         "gnomix/gnomix.py",
         expand("data/replicate_{r}/{c}_{m}_{g}_10.vcf.gz", r = replicates, m = markersets, c = cohorts, g = generations),
         expand("results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations, t = lathresholds),
-        expand("results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.fb.tsv", r = replicates, m = ["array"], g1 = generations, g2 = generations),
+        expand("results/accuracy/rfmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = ["array"], g1 = generations, g2 = generations),
         expand("results/accuracy/flare/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/localancestry/gnomix/{r}_{m}_{g1}_{g2}/query_results.msp", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/localancestry/recombmix/{r}_{m}_{g1}_{g2}/inferred_local_ancestral_values.txt", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}_prob.txt.gz", r = replicates, m = markersets, g1 = generations, g2 = generations)
+        expand("results/accuracy/gnomix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
+        expand("results/accuracy/recombmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
+        expand("results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations)
     shell:
         r"""
         julia --project=. -e 'println("WOHOO")'

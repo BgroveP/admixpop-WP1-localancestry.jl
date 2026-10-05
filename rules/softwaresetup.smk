@@ -98,6 +98,9 @@ rule gnomix_setup:
         rm -rf gnomix
         git clone https://github.com/AI-sandbox/gnomix
         pip install -r gnomix/requirements.txt
+
+        # Choose the "large" model
+        sed -i 's/^\(\s*inference:\s*\)\(#\)/\1"large" \2/' gnomix/config.yaml
         """
 
 

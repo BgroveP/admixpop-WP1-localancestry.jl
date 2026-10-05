@@ -10,8 +10,8 @@ rule estimate_localancestryjl:
         result = "results/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv",
     threads: 24
     resources:
-        mem_mb = 100000,
-        runtime = 180
+        mem_mb = 20000,
+        runtime = 30
     benchmark:
         "benchmarks/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.tsv"
     shell:
@@ -33,8 +33,6 @@ rule estimate_localancestryjl:
         """
 
 rule estimate_rfmix:
-    wildcard_constraints:
-        m="array"
     input:
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
         admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",
@@ -47,8 +45,8 @@ rule estimate_rfmix:
         "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.sis.tsv"
     threads: 24
     resources:
-        mem_mb = 100000,
-        runtime = 180
+        mem_mb = 300000,
+        runtime = 540
     benchmark:
         "benchmarks/rfmix/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -66,16 +64,53 @@ rule estimate_flare:
     threads: 24
     resources:
         mem_mb = 100000,
-        runtime = 180
+        runtime = 20
     benchmark:
         "benchmarks/flare/{r}_{m}_{g1}_{g2}.tsv"
     shell:
         r"""
             java -jar flare/flare.jar \
-                min-mac=0 min-maf=0.001 \
+                min-mac=0 min-maf=0.0 \
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \
                 out=results/localancestry/flare/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
+        """
+
+rule estimate_flareclust:
+    input:
+        ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
+        admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",
+        globalancestries = "data/replicate_{r}/global_ancestries_flare.ssv",
+        genomicmap = "data/flare_{m}.ssv",
+    output:
+        "results/localancestry/flareclust/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
+    threads: 24
+    resources:
+        mem_mb = 100000,
+        runtime = 20
+    benchmark:
+        "benchmarks/flareclust/{r}_{m}_{g1}_{g2}.tsv"
+    shell:
+        r"""
+            java -jar flare/flare.jar \
+                min-mac=0 min-maf=0.0 \
+                ref={input.ancestral} ref-panel={input.globalancestries} \
+                gt={input.admixed} map={input.genomicmap} \
+                panel-probs=true \
+                out=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
+        
+            python3 flare/create_model_file.py \
+            3 \
+            results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.panels \
+            results/localancestry/flareclust/{r}_{m}_{g1}_{g2}
+
+            java -jar flare/flare.jar \
+                min-mac=0 min-maf=0.0 \
+                ref={input.ancestral} ref-panel={input.globalancestries} \
+                gt={input.admixed} map={input.genomicmap} \
+                model=/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.model \
+                update-p=true \
+                out=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
 rule estimate_gnomix:
@@ -90,7 +125,7 @@ rule estimate_gnomix:
         "results/localancestry/gnomix/{r}_{m}_{g1}_{g2}/query_results.msp",
     threads: 24
     resources:
-        mem_mb = 100000,
+        mem_mb = 400000,
         runtime = 180
     benchmark:
         "benchmarks/gnomix/{r}_{m}_{g1}_{g2}.tsv"
@@ -124,7 +159,7 @@ rule estimate_recombmix:
     threads: 24
     resources:
         mem_mb = 100000,
-        runtime = 180
+        runtime = 60
     benchmark:
         "benchmarks/recombmix/{r}_{m}_{g1}_{g2}.tsv"
     params:
@@ -145,7 +180,7 @@ rule estimate_sparsepainter:
         prob = "results/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}_prob.txt.gz",
     threads: 24
     resources:
-        mem_mb = 100000,
+        mem_mb = 300000,
         runtime = 180
     benchmark:
         "benchmarks/sparsepainter/{r}_{m}_{g1}_{g2}.tsv"

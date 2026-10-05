@@ -7,6 +7,7 @@ using QGIO
 using Base.Threads
 using StatsBase
 
+include("collection.jl")
 include("read_recombmix.jl")
 
 

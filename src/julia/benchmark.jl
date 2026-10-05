@@ -4,6 +4,9 @@ using CSV
 using DataFrames
 using StatsBase
 
+# Input
+defaultt = 0.6
+
 # 
 softwares = readdir("benchmarks")
 nsoftwares = length(softwares)
@@ -26,15 +29,18 @@ o.replicate = parse.(Int, getindex.(parts, 1))
 o.markerset    = getindex.(parts, 2)
 o.ancgen    = parse.(Int, getindex.(parts, 3))
 o.admgen    = parse.(Int, getindex.(parts, 4))
-o.threshold  .= 0.0
+o.threshold  .= defaultt
 o.threshold[o.software .== "localancestryjl"]    = parse.(Int, getindex.(parts[o.software .== "localancestryjl"], 5)) + parse.(Int, getindex.(parts[o.software .== "localancestryjl"], 6))/10 
 
 # Summary
 # Number of finishes analyses 
-unstack(sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset, :threshold]), :s => length => :n), :n), :software, :n)
+n = sort(unstack(combine(groupby(o, [:software, :ancgen, :admgen, :markerset, :threshold]), :s => length => :n), :software, :n), [:markerset, :ancgen, :admgen])
+deleteat!(n, n.threshold .!= defaultt)
 
 # Statistics
 summary = sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset, :threshold]), [:s, :max_rss] .=> mean), :s_mean)
+deleteat!(summary, summary.threshold .!= defaultt)
 unstacked_summary_time = unstack(summary[:, Not(:max_rss_mean)], :software, :s_mean)
 unstacked_summary_RAM = unstack(summary[:, Not(:s_mean)], :software, :max_rss_mean)
-unstacked_summary.rel = unstacked_summary.flare ./ unstacked_summary.localancestryjl
+CSV.write("benchmarks/summary_RAM.csv", unstacked_summary_RAM)
+CSV.write("benchmarks/summary_time.csv", unstacked_summary_time)

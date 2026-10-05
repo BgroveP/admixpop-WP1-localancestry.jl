@@ -250,3 +250,20 @@ function parse_memory(x)
         return parse(Float64, x)
     end
 end
+
+function overlap_matrix(tru, est)
+    joined = innerjoin(tru, est, on = [:individual, :haplotype, :chromosome],
+                       makeunique = true, validate = (false, false))
+    labels1 = unique(tru.ancestry)
+    labels2 = unique(est.ancestry)
+
+    M = zeros(Int, length(labels1), length(labels2))
+    for r in eachrow(joined)
+        ov = length(intersect(r.basepairs, r.basepairs_1))
+        ov == 0 && continue
+        j = findfirst(==(r.ancestry),   labels1)   # true label
+        i = findfirst(==(r.ancestry_1), labels2)   # est label
+        M[i, j] += ov
+    end
+    return (M, labels1, labels2)
+end

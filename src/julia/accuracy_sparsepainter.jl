@@ -6,6 +6,7 @@ using LocalAncestry
 using QGIO
 using Base.Threads
 using StatsBase
+using Combinatorics
 
 # Get ARGS
 vcfpath = ARGS[1]
@@ -17,16 +18,16 @@ include("read_sparsepainter.jl")
 include("collection.jl")
 
 # Test
-#vcfpath = "results/localancestry/flare/1_array_6_6.anc.vcf.gz"
-#truelapath = "data/replicate_1/local_ancestries.csv"
-#outpath = "results/accuracy/sparsepainter/1_array_6_6.csv"
+vcfpath = "results/localancestry/sparsepainter/1_array_8_8_prob.txt.gz"
+truelapath = "data/replicate_1/local_ancestries.csv"
+outpath = "results/accuracy/sparsepainter/1_array_8_8.csv"
 
 # Hard-coded paths
 gmappath = "data/rfmix_sequence.tsv"
 gmappath2 = "data/rfmix_array.tsv"
 
 # Read
-est = read_sparsepainter(vcfpath, "chr22", ["EUR", "EAS", "AFR"])
+est = read_sparsepainter(vcfpath, "chr22")
 tru = CSV.read(truelapath, DataFrame)
 gmap = CSV.read(gmappath, DataFrame, header = ["chromosome", "position(bp)", "distance"])
 gmap2 = CSV.read(gmappath2, DataFrame, header = ["chromosome", "position(bp)", "distance"])
@@ -38,6 +39,19 @@ gmap.array[ismissing.(gmap.array)] .= false
 
 # Convert basepairs strings to ranges
 tru.basepairs = UnitRange{Int}.(parse.(Int, replace.(tru.basepairs, r"\:.+" => "")), parse.(Int, replace.(tru.basepairs, r".+\:" => "")))
+
+# Translate ancestries
+est.ancestry = string.(est.ancestry)
+M, lab1, lab2 = overlap_matrix(tru, est)
+
+best = argmax(permutations(1:3)) do p
+    sum(M[i, p[i]] for i in 1:3)
+end
+
+popdict = Dict(lab2 .=> lab1[best])
+for i in axes(est, 1)
+    est.ancestry[i] = popdict[est.ancestry[i]]
+end
 
 # Get accuracy
 accuracies = evaluate(est, tru, gmap)

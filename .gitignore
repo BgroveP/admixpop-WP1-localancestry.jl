@@ -21,6 +21,7 @@ Recomb-Mix
 rfmix
 SparsePainter
 tmp
+plots
 logs
 
 # Files made with snakemake

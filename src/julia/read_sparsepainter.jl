@@ -22,13 +22,10 @@ end
     end
     return idx
 end
-
 const SegRow = NamedTuple{(:individual, :chromosome, :haplotype, :basepairs, :ancestry),
-                          Tuple{String, String, Int, UnitRange{Int}, String}}
+                          Tuple{String, String, Int, UnitRange{Int}, Int}}
 
-function read_sparsepainter(infile::AbstractString, chrom::AbstractString,
-                            labels::Vector{<:AbstractString})
-    labels = String.(labels)
+function read_sparsepainter(infile::AbstractString, chrom::AbstractString)
     println("Reading lines from file")
     lines = read_lines_any(infile)
 
@@ -41,7 +38,7 @@ function read_sparsepainter(infile::AbstractString, chrom::AbstractString,
     positions = [parse(Int, p) for p in header_parts[2:end]]
     nbins = length(positions)
 
-    rows = SegRow[]                       # concretely typed accumulator
+    rows = SegRow[]
     sizehint!(rows, 100_000)
     plock = ReentrantLock()
 
@@ -54,7 +51,6 @@ function read_sparsepainter(infile::AbstractString, chrom::AbstractString,
         nbins == length(cells) ||
             error("Row $ind has $(length(cells)) bins, expected $nbins")
 
-        # Decode both haplotypes per bin into Int ancestry codes
         c1 = Vector{Int}(undef, nbins)
         c2 = Vector{Int}(undef, nbins)
         @inbounds for (i, cell) in enumerate(cells)
@@ -63,29 +59,28 @@ function read_sparsepainter(infile::AbstractString, chrom::AbstractString,
             c2[i] = anc_index(SubString(cell, bar + 1, length(cell)))
         end
 
-        # Merge consecutive bins with the same ancestry into segments
         for (h, codes) in ((1, c1), (2, c2))
             prev = codes[1]; s0 = 1
             @inbounds for i in 2:nbins
-                if codes[i] != prev            # Int comparison, no allocation
+                if codes[i] != prev
                     @lock plock push!(rows, (individual = ind, chromosome = chrom,
                                  haplotype = h,
                                  basepairs = positions[s0]:positions[i-1],
-                                 ancestry = labels[prev]))
+                                 ancestry = prev))        # raw index, no lookup
                     prev = codes[i]; s0 = i
                 end
             end
             @lock plock push!(rows, (individual = ind, chromosome = chrom,
                          haplotype = h,
                          basepairs = positions[s0]:positions[nbins],
-                         ancestry = labels[prev]))
+                         ancestry = prev))
         end
     end
 
-    # Sort the output
     out = DataFrame(rows)
     sort!(out, [:individual, :chromosome, :haplotype, :basepairs])
-
-    # Output
-    return out   # already concretely typed, no column fixups needed
+    return out
 end
+
+est[est.individual .== "admixed_97786",:]
+tru[tru.individual .== "admixed_97786",:]

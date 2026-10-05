@@ -13,6 +13,20 @@ rule accuracy_flare:
             julia --project=. src/julia/accuracy_flare.jl {input.est} {input.tru} {output.path}
         """
 
+rule accuracy_flareclust:
+    input:
+        "src/julia/accuracy_flare.jl",
+        "src/julia/read_flare.jl",
+        "src/julia/collection.jl",
+        est = "results/localancestry/flareclust/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
+        tru = "data/replicate_{r}/local_ancestries.csv"
+    output:
+        path = "results/accuracy/flareclust/{r}_{m}_{g1}_{g2}.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/accuracy_flare.jl {input.est} {input.tru} {output.path}
+        """
+
 rule accuracy_rfmix:
     input:
         "src/julia/accuracy_rfmix.jl",

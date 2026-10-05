@@ -3,7 +3,7 @@
 using Pkg
 
 # Install official packages
-Pkg.add(["DataFrames", "CSV", "StatsBase", "PackageCompiler", "CodecZlib"])
+Pkg.add(["DataFrames", "CSV", "StatsBase", "PackageCompiler", "CodecZlib", "Plots", "Combinatorics"])
 Pkg.add(name="LocalAncestry", version="0.3.0")
 
 # Install a VCF parser from github

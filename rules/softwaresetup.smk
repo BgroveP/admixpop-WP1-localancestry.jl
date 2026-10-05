@@ -101,6 +101,9 @@ rule gnomix_setup:
 
         # Choose the "large" model
         sed -i 's/^\(\s*inference:\s*\)\(#\)/\1"large" \2/' gnomix/config.yaml
+
+        # Bugfix for outdated function argument when using "large" model
+        sed -i 's/padding_mode="reflection"/padding_mode="reflect"/' gnomix/src/Smooth/cnn.py
         """
 
 

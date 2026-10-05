@@ -102,19 +102,20 @@ rule estimate_flareclust:
             python3 flare/create_model_file.py \
             3 \
             results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.panels \
-            results/localancestry/flareclust/{r}_{m}_{g1}_{g2}
+            results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}
 
             java -jar flare/flare.jar \
                 min-mac=0 min-maf=0.0 \
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \
-                model=/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.model \
+                model=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.model \
                 update-p=true \
                 out=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
 rule estimate_gnomix:
     input:
+        "gnomix/config.yaml",
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
         ancestral_tbi = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz.tbi",
         admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",
@@ -134,6 +135,7 @@ rule estimate_gnomix:
             OMP_NUM_THREADS=1
             OPENBLAS_NUM_THREADS=1
 
+            PYTHONWARNINGS="ignore::FutureWarning" \
             python3 gnomix/gnomix.py \
             {input.admixed} \
             results/localancestry/gnomix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} \

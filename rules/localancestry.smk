@@ -10,8 +10,8 @@ rule estimate_localancestryjl:
         result = "results/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv",
     threads: 24
     resources:
-        mem_mb = 20000,
-        runtime = 30
+        mem_mb = 15000,
+        runtime = 20
     benchmark:
         "benchmarks/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.tsv"
     shell:
@@ -45,8 +45,8 @@ rule estimate_rfmix:
         "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.sis.tsv"
     threads: 24
     resources:
-        mem_mb = 300000,
-        runtime = 540
+        mem_mb = 100000,
+        runtime = 720
     benchmark:
         "benchmarks/rfmix/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -63,8 +63,8 @@ rule estimate_flare:
         "results/localancestry/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
     threads: 24
     resources:
-        mem_mb = 100000,
-        runtime = 20
+        mem_mb = 20000,
+        runtime = 30
     benchmark:
         "benchmarks/flare/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -86,8 +86,8 @@ rule estimate_flareclust:
         "results/localancestry/flareclust/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
     threads: 24
     resources:
-        mem_mb = 100000,
-        runtime = 20
+        mem_mb = 20000,
+        runtime = 30
     benchmark:
         "benchmarks/flareclust/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -160,8 +160,8 @@ rule estimate_recombmix:
         "results/localancestry/recombmix/{r}_{m}_{g1}_{g2}/inferred_local_ancestral_values.txt",
     threads: 24
     resources:
-        mem_mb = 100000,
-        runtime = 60
+        mem_mb = 5000,
+        runtime = 30
     benchmark:
         "benchmarks/recombmix/{r}_{m}_{g1}_{g2}.tsv"
     params:
@@ -182,7 +182,7 @@ rule estimate_sparsepainter:
         prob = "results/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}_prob.txt.gz",
     threads: 24
     resources:
-        mem_mb = 300000,
+        mem_mb = 400000,
         runtime = 180
     benchmark:
         "benchmarks/sparsepainter/{r}_{m}_{g1}_{g2}.tsv"

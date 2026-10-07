@@ -11,7 +11,7 @@ rule estimate_localancestryjl:
     threads: 24
     resources:
         mem_mb = 15000,
-        runtime = 20
+        runtime = 5
     benchmark:
         "benchmarks/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.tsv"
     shell:
@@ -87,7 +87,7 @@ rule estimate_flareclust:
     threads: 24
     resources:
         mem_mb = 20000,
-        runtime = 30
+        runtime = 35
     benchmark:
         "benchmarks/flareclust/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -127,7 +127,7 @@ rule estimate_gnomix:
     threads: 24
     resources:
         mem_mb = 400000,
-        runtime = 180
+        runtime = 200
     benchmark:
         "benchmarks/gnomix/{r}_{m}_{g1}_{g2}.tsv"
     shell:

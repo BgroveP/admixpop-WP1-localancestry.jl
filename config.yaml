@@ -42,3 +42,27 @@ versions:
   recombmix: "ucfcbb/Recomb-Mix"
   rfmix: "slowkoni/rfmix"
 
+# Resource calibration from benchmark replicates (max observed × safety margin)
+# runtime: minutes, mem_mb: MB. Missing markerset/tool -> fallback in Snakefile.
+estimatelimits:
+  localancestryjl:
+    array:    {runtime: 2,   mem_mb: 4000}
+    sequence: {runtime: 5,   mem_mb: 16000}
+  recombmix:
+    array:    {runtime: 5,   mem_mb: 1000}
+    sequence: {runtime: 30,  mem_mb: 2000}
+  flare:
+    array:    {runtime: 5,   mem_mb: 8000}
+    sequence: {runtime: 25,  mem_mb: 24000}
+  flareclust:
+    array:    {runtime: 5,   mem_mb: 8000}
+    sequence: {runtime: 25,  mem_mb: 20000}    
+  rfmix:
+    array:    {runtime: 100, mem_mb: 24000}
+    sequence: {runtime: 600, mem_mb: 100000}  
+  sparsepainter:
+    array:    {runtime: 60,  mem_mb: 50000}
+    sequence: {runtime: 180, mem_mb: 400000}  
+  gnomix:
+    array:    {runtime: 70,  mem_mb: 45000}
+    sequence: {runtime: 200, mem_mb: 450000}  

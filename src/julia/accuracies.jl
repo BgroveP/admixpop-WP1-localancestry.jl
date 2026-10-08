@@ -4,41 +4,47 @@ using CSV
 using DataFrames
 using StatsBase
 using Plots
+using Base.Threads
 
 # Input
 defaultt = 0.6
 
 # 
-softwares = readdir("results/accuracy")
-softwares = softwares[softwares .!= "recombmix"]
+softwares = ["flare","flareclust","recombmix", "gnomix","localancestryjl","rfmix","sparsepainter"]
+softwares = softwares[isdir.("results/accuracy/" .* softwares)]
 nsoftwares = length(softwares)
 
 # Read
 o = Vector{DataFrame}(undef, nsoftwares)
-for (i,s) in enumerate(softwares)
+@threads for i in axes(softwares, 1)
+    s = softwares[i]
     println(s)
     b = readdir("results/accuracy/$(s)", join = true)
     o[i] = CSV.read(b, DataFrame)
-    o[i].file = repeat(replace.(b, "results/accuracy/" =>""), inner = Int(nrow(o[i])/length(b)))
+
+    n = Int(nrow(o[i])/length(b))
+    parts = split.(b, [['_', '.', '/']])
+
+    # Get information
+    o[i].software  .= s
+    o[i].replicate = repeat(parse.(Int, getindex.(parts, 4)), inner = n)
+    o[i].markerset    = repeat(getindex.(parts,5), inner = n)
+    o[i].ancgen    = repeat(parse.(Int, getindex.(parts, 6)), inner = n)
+    o[i].admgen    = repeat(parse.(Int, getindex.(parts, 7)), inner = n)
+    o[i].threshold  .= defaultt
+
+    if s == "localancestryjl"
+        o[i].threshold .= repeat(parse.(Int, getindex.(parts, 8)) + parse.(Int, getindex.(parts, 9)) ./10, inner = n)
+    end
 end
 
 # Collect
 o = vcat(o...)
 
-# Get information from file name
-parts = split.(basename.(o.file), [['_', '.']])
-o.software  = dirname.(o.file)
-o.replicate = parse.(Int, getindex.(parts, 1))
-o.markerset    = getindex.(parts, 2)
-o.ancgen    = parse.(Int, getindex.(parts, 3))
-o.admgen    = parse.(Int, getindex.(parts, 4))
-o.threshold  .= defaultt
-o.threshold[o.software .== "localancestryjl"]    = parse.(Int, getindex.(parts[o.software .== "localancestryjl"], 5)) + parse.(Int, getindex.(parts[o.software .== "localancestryjl"], 6))/10 
-
 # Get overall accuracies
 o.keep = (o.array .& (o.markerset .== "array")) .| (o.markerset .== "sequence")
 deleteat!(o, .~o.keep)
-o2 = combine(groupby(o, ["software", "ancgen", "admgen", "markerset", "threshold"]), :accuracy .=> [mean, minimum, maximum])
+o2 = combine(groupby(o, ["software", "ancgen", "admgen", "markerset", "array", "threshold"]), :accuracy .=> [mean, minimum, maximum])
 CSV.write("results/accuracy/summary.csv", o2)
 #unstack(o2[:,Not([:accuracy_minimum,:accuracy_maximum])], :software, :accuracy_mean)
 

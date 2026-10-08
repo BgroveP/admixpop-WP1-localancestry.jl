@@ -8,6 +8,8 @@ rule accuracy_flare:
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
         path = "results/accuracy/flare/{r}_{m}_{g1}_{g2}.csv"
+    resources:
+        mem_mb = 10000
     shell:
         r"""
             julia --project=. src/julia/accuracy_flare.jl {input.est} {input.tru} {output.path}
@@ -22,9 +24,11 @@ rule accuracy_flareclust:
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
         path = "results/accuracy/flareclust/{r}_{m}_{g1}_{g2}.csv"
+    resources:
+        mem_mb = 10000
     shell:
         r"""
-            julia --project=. src/julia/accuracy_flare.jl {input.est} {input.tru} {output.path}
+            julia --project=. src/julia/accuracy_flareclust.jl {input.est} {input.tru} {output.path}
         """
 
 rule accuracy_rfmix:
@@ -36,6 +40,8 @@ rule accuracy_rfmix:
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
         path = "results/accuracy/rfmix/{r}_{m}_{g1}_{g2}.csv"
+    resources:
+        mem_mb = 10000
     shell:
         r"""
             julia --project=. src/julia/accuracy_rfmix.jl {input.est} {input.tru} {output.path}
@@ -50,6 +56,8 @@ rule accuracy_recombmix:
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
         path = "results/accuracy/recombmix/{r}_{m}_{g1}_{g2}.csv"
+    resources:
+        mem_mb = 10000
     shell:
         r"""
             julia --project=. src/julia/accuracy_recombmix.jl {input.est} {input.tru} {output.path}
@@ -62,6 +70,8 @@ rule accuracy_localancestryljl:
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
         path = "results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv"
+    resources:
+        mem_mb = 10000
     shell:
         r"""
             julia --project=. src/julia/accuracy_localancestryjl.jl {input.est} {input.tru} {output.path}
@@ -77,6 +87,8 @@ rule accuracy_gnomix:
         tru = "data/replicate_{r}/local_ancestries.csv"
     output:
         path = "results/accuracy/gnomix/{r}_{m}_{g1}_{g2}.csv"
+    resources:
+        mem_mb = 10000
     shell:
         r"""
             julia --project=. src/julia/accuracy_gnomix.jl {input.est} {input.tru} {output.path}
@@ -92,6 +104,8 @@ rule accuracy_sparsepainter:
         path = "results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv"
     threads:
         10
+    resources:
+        mem_mb = 10000
     shell:
         r"""
             julia -t {threads} --project=. src/julia/accuracy_sparsepainter.jl {input.est} {input.tru} {output.path}

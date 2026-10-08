@@ -1,4 +1,13 @@
 
+
+def _runtime(tool, markerset):
+    return config["estimatelimits"][tool][markerset]["runtime"]
+
+
+def _mem(tool, markerset):
+    return config["estimatelimits"][tool][markerset]["mem_mb"]
+
+
 rule estimate_localancestryjl:
     input:
         "src/julia/setup.jl",
@@ -10,8 +19,8 @@ rule estimate_localancestryjl:
         result = "results/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv",
     threads: 24
     resources:
-        mem_mb = 15000,
-        runtime = 5
+        mem_mb = lambda wc: _mem("localancestryjl", wc.m),
+        runtime = lambda wc: _runtime("localancestryjl", wc.m),
     benchmark:
         "benchmarks/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.tsv"
     shell:
@@ -32,6 +41,7 @@ rule estimate_localancestryjl:
         ' 
         """
 
+
 rule estimate_rfmix:
     input:
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
@@ -45,8 +55,8 @@ rule estimate_rfmix:
         "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.sis.tsv"
     threads: 24
     resources:
-        mem_mb = 100000,
-        runtime = 720
+        mem_mb = lambda wc: _mem("rfmix", wc.m),
+        runtime = lambda wc: _runtime("rfmix", wc.m),
     benchmark:
         "benchmarks/rfmix/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -63,8 +73,8 @@ rule estimate_flare:
         "results/localancestry/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
     threads: 24
     resources:
-        mem_mb = 20000,
-        runtime = 30
+        mem_mb = lambda wc: _mem("flare", wc.m),
+        runtime = lambda wc: _runtime("flare", wc.m),
     benchmark:
         "benchmarks/flare/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -76,6 +86,7 @@ rule estimate_flare:
                 out=results/localancestry/flare/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
+
 rule estimate_flareclust:
     input:
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
@@ -86,8 +97,8 @@ rule estimate_flareclust:
         "results/localancestry/flareclust/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
     threads: 24
     resources:
-        mem_mb = 20000,
-        runtime = 35
+        mem_mb = lambda wc: _mem("flareclust", wc.m),
+        runtime = lambda wc: _runtime("flareclust", wc.m),
     benchmark:
         "benchmarks/flareclust/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -113,6 +124,7 @@ rule estimate_flareclust:
                 out=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
+
 rule estimate_gnomix:
     input:
         "gnomix/config.yaml",
@@ -126,8 +138,8 @@ rule estimate_gnomix:
         "results/localancestry/gnomix/{r}_{m}_{g1}_{g2}/query_results.msp",
     threads: 24
     resources:
-        mem_mb = 400000,
-        runtime = 200
+        mem_mb = lambda wc: _mem("gnomix", wc.m),
+        runtime = lambda wc: _runtime("gnomix", wc.m),
     benchmark:
         "benchmarks/gnomix/{r}_{m}_{g1}_{g2}.tsv"
     shell:
@@ -147,7 +159,7 @@ rule estimate_gnomix:
             gnomix/config.yaml 
         """
 
-        
+
 rule estimate_recombmix:
     input:
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
@@ -160,8 +172,8 @@ rule estimate_recombmix:
         "results/localancestry/recombmix/{r}_{m}_{g1}_{g2}/inferred_local_ancestral_values.txt",
     threads: 24
     resources:
-        mem_mb = 5000,
-        runtime = 30
+        mem_mb = lambda wc: _mem("recombmix", wc.m),
+        runtime = lambda wc: _runtime("recombmix", wc.m),
     benchmark:
         "benchmarks/recombmix/{r}_{m}_{g1}_{g2}.tsv"
     params:
@@ -171,19 +183,20 @@ rule estimate_recombmix:
             Recomb-Mix/RecombMix -t {threads} -p {input.ancestral} -a {input.poplabels} -q {input.admixed} -g {input.genomicmap} -o results/localancestry/recombmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
+
 rule estimate_sparsepainter:
     input:
         reffile = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
         targetfile = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",
         mapfile = "data/sparsepainter_{m}.tsv",
-        popfile = "data/replicate_{r}/global_ancestries_rfmix.tsv",
+        popfile = "data/replicate_{r}/global_ancestries_sparsepainter_{g1}.tsv",
         namefile = "data/replicate_{r}/individuals_admixed_gen{g2}_10.txt",
     output:
         prob = "results/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}_prob.txt.gz",
     threads: 24
     resources:
-        mem_mb = 400000,
-        runtime = 180
+        mem_mb = lambda wc: _mem("sparsepainter", wc.m),
+        runtime = lambda wc: _runtime("sparsepainter", wc.m),
     benchmark:
         "benchmarks/sparsepainter/{r}_{m}_{g1}_{g2}.tsv"
     params:
@@ -208,4 +221,3 @@ rule estimate_sparsepainter:
             -probstore raw \
             -ncores {threads} 
         """
-

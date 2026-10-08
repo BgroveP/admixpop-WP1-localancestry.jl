@@ -18,9 +18,11 @@ include("read_sparsepainter.jl")
 include("collection.jl")
 
 # Test
-vcfpath = "results/localancestry/sparsepainter/1_array_8_8_prob.txt.gz"
-truelapath = "data/replicate_1/local_ancestries.csv"
-outpath = "results/accuracy/sparsepainter/1_array_8_8.csv"
+# include("src/julia/read_sparsepainter.jl")
+# include("src/julia/collection.jl")
+#vcfpath = "results/localancestry/sparsepainter/1_array_10_6_prob.txt.gz"
+#truelapath = "data/replicate_1/local_ancestries.csv"
+#outpath = "results/accuracy/sparsepainter/1_array_10_6.csv"
 
 # Hard-coded paths
 gmappath = "data/rfmix_sequence.tsv"
@@ -62,3 +64,4 @@ println(mean(gmap.accuracy[Bool.(gmap.array)]))
 
 # Write output
 CSV.write(outpath, gmap)
+# combine(groupby(tru, :ancestry), :basepairs => (x -> sum(sum.(x))))

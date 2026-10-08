@@ -81,6 +81,3 @@ function read_sparsepainter(infile::AbstractString, chrom::AbstractString)
     sort!(out, [:individual, :chromosome, :haplotype, :basepairs])
     return out
 end
-
-est[est.individual .== "admixed_97786",:]
-tru[tru.individual .== "admixed_97786",:]

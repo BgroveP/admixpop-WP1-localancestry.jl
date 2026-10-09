@@ -18,9 +18,11 @@ include("read_flare.jl")
 include("collection.jl")
 
 # Test
-#vcfpath = "results/localancestry/flareclust/1_array_10_10.anc.vcf.gz"
+#include("src/julia/read_flare.jl")
+#include("src/julia/collection.jl")
+#vcfpath = "results/localancestry/flareclust/1_array_6_6.anc.vcf.gz"
 #truelapath = "data/replicate_1/local_ancestries.csv"
-#outpath = "results/accuracy/flareclust/1_array_10_10.csv"
+#outpath = "results/accuracy/flareclust/1_array_6_6.csv"
 
 # Hard-coded paths
 gmappath = "data/rfmix_sequence.tsv"

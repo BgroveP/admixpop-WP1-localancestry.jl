@@ -59,10 +59,10 @@ estimatelimits:
     sequence: {runtime: 25,  mem_mb: 20000}    
   rfmix:
     array:    {runtime: 100, mem_mb: 24000}
-    sequence: {runtime: 600, mem_mb: 100000}  
+    sequence: {runtime: 1000, mem_mb: 100000}  
   sparsepainter:
     array:    {runtime: 60,  mem_mb: 50000}
-    sequence: {runtime: 500, mem_mb: 400000}  
+    sequence: {runtime: 1500, mem_mb: 400000}  
   gnomix:
     array:    {runtime: 70,  mem_mb: 45000}
     sequence: {runtime: 200, mem_mb: 450000}  

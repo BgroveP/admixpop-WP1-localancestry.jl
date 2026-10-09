@@ -45,6 +45,17 @@ rule individual_files_sparsepainter:
     shell:
         "julia --project=. {input.jlscript} {input.vcfpath} {input.poplabels} {output.outpath}"
 
+rule individual_files_flareclust:
+    input:
+        poplabels = "data/replicate_{r}/global_ancestries.csv",
+        jlscript = "src/julia/write_flareclust_popfile.jl",
+        vcfpath = "data/replicate_{r}/ancestral_array_{g1}_10.vcf.gz"
+    output:
+        outpath = "data/replicate_{r}/global_ancestries_flareclust_{g1}.ssv"
+        
+    shell:
+        "julia --project=. {input.jlscript} {input.vcfpath} {input.poplabels} {output.outpath}"
+
 # Download hapmap3 map
 rule hapmap3_download_and_liftover:
     output:

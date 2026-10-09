@@ -105,7 +105,7 @@ rule accuracy_sparsepainter:
     threads:
         10
     resources:
-        mem_mb = 10000
+        mem_mb = 40000
     shell:
         r"""
             julia -t {threads} --project=. src/julia/accuracy_sparsepainter.jl {input.est} {input.tru} {output.path}

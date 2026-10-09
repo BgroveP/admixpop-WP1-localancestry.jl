@@ -91,7 +91,7 @@ rule estimate_flareclust:
     input:
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
         admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",
-        globalancestries = "data/replicate_{r}/global_ancestries_flare.ssv",
+        globalancestries = "data/replicate_{r}/global_ancestries_flareclust_{g1}.ssv",
         genomicmap = "data/flare_{m}.ssv",
     output:
         "results/localancestry/flareclust/{r}_{m}_{g1}_{g2}.anc.vcf.gz",

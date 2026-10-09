@@ -27,9 +27,9 @@ include("read_rfmix.jl")
 include("collection.jl")
 
 # Test
-#vcfpath = "results/flare/29_array_10_10.anc.vcf.gz"
-#truelapath = "data/replicate_29/local_ancestries.csv"
-#outpath = "results/flare/29_array_10_10.csv"
+#vcfpath = "results/localancestry/rfmix/2_sequence_6_6.msp.tsv"
+#truelapath = "data/replicate_2/local_ancestries.csv"
+#outpath = "results/rfmix/2_sequence_6_6.csv"
 
 # Hard-coded paths
 gmappath = "data/rfmix_sequence.tsv"
@@ -37,7 +37,7 @@ gmappath2 = "data/rfmix_array.tsv"
 
 # Read
 println("Reading data")
-est = read_rfmix(vcfpath, QGIO.loci(replace(truelapath, "local_ancestries.csv" => "admixed_sequence_10_10.vcf.gz")))
+est = read_rfmix2(vcfpath, QGIO.loci(replace(truelapath, "local_ancestries.csv" => "admixed_sequence_10_10.vcf.gz")))
 tru = CSV.read(truelapath, DataFrame)
 gmap = CSV.read(gmappath, DataFrame, header = ["chromosome", "position(bp)", "distance"])
 gmap2 = CSV.read(gmappath2, DataFrame, header = ["chromosome", "position(bp)", "distance"])
@@ -52,7 +52,7 @@ tru.basepairs = UnitRange{Int}.(parse.(Int, replace.(tru.basepairs, r"\:.+" => "
 
 # Get accuracy
 println("Calculating the accuracies")
-accuracies = evaluate(est, tru, gmap)
+accuracies = evaluate2(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
 gmap.incorrect = accuracies.pincorrect
 gmap.unassigned = accuracies.punassigned

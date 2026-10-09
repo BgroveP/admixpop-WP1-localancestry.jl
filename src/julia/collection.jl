@@ -1,3 +1,4 @@
+using DataFrames, Base.Threads, StatsBase  
 
 function read_vcf_field(path::AbstractString, c::Union{AbstractString,Int}, field::AbstractString)
 
@@ -266,4 +267,73 @@ function overlap_matrix(tru, est)
         M[i, j] += ov
     end
     return (M, labels1, labels2)
+end
+
+
+function evaluate2(predla::DataFrame, truela::DataFrame, gmap::DataFrame)
+    pos = Vector(gmap[!, "position(bp)"])
+    L = length(pos)
+
+    p_ind = predla.individual; p_hap = predla.haplotype
+    p_bp  = predla.basepairs;  p_anc = predla.ancestry
+    t_ind = truela.individual; t_hap = truela.haplotype
+    t_bp  = truela.basepairs;  t_anc = truela.ancestry
+
+    pred_idx = Dict{Tuple{eltype(p_ind),eltype(p_hap)},Vector{Int}}()
+    for j in eachindex(p_ind)
+        push!(get!(pred_idx, (p_ind[j], p_hap[j]), Int[]), j)
+    end
+    nhaplotypes = length(pred_idx)
+
+    nt = nthreads()
+    ncorrect   = [zeros(Int, L) for _ in 1:nt]
+    nincorrect = [zeros(Int, L) for _ in 1:nt]
+    nunassign  = [zeros(Int, L) for _ in 1:nt]
+
+    # explicit row chunks: one task per chunk, each writes only its own arrays
+    rows = collect(1:length(t_ind))
+    chunksize = cld(length(rows), nt)
+    chunks = [rows[i:min(i+chunksize-1, end)] for i in 1:chunksize:length(rows)]
+
+    @threads for c in eachindex(chunks)
+        tid = c   # chunk-local, never a thread id
+        for i in chunks[c]
+            r = get(pred_idx, (t_ind[i], t_hap[i]), nothing)
+            r === nothing && continue
+
+            itstart = searchsortedfirst(pos, first(t_bp[i]))
+            itstart > L && continue
+            tstart = pos[itstart]
+            itend = max(itstart, searchsortedfirst(pos, last(t_bp[i])) - 1)
+            tend = pos[itend]
+
+            for j in r
+                b = p_bp[j]
+                lo = max(first(b), tstart)
+                hi = min(last(b), tend)
+                hi < lo && continue
+
+                # all markers within [lo, hi] — no exact-match requirement
+                start = searchsortedfirst(pos, lo)
+                stop  = searchsortedlast(pos, hi)
+                stop < start && continue
+
+                if t_anc[i] == p_anc[j]
+                    for k in start:stop; ncorrect[tid][k] += 1; end
+                else
+                    for k in start:stop; nincorrect[tid][k] += 1; end
+                end
+                for k in start:stop; nunassign[tid][k] += 1; end
+            end
+        end
+    end
+
+    out = DataFrame(locus = 1:L)
+    out.ncorrect   = reduce(+, ncorrect)
+    out.incorrect  = reduce(+, nincorrect)
+    out.unassigned = nhaplotypes .- reduce(+, nunassign)
+    out.pcorrect    = out.ncorrect   ./ nhaplotypes
+    out.pincorrect  = out.incorrect  ./ nhaplotypes
+    out.punassigned = out.unassigned ./ nhaplotypes
+    return out
 end

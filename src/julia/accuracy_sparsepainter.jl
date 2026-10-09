@@ -56,7 +56,7 @@ for i in axes(est, 1)
 end
 
 # Get accuracy
-accuracies = evaluate(est, tru, gmap)
+accuracies = evaluate2(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
 gmap.incorrect = accuracies.pincorrect
 gmap.unassigned = accuracies.punassigned

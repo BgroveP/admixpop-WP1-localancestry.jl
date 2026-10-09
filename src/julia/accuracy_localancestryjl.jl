@@ -7,10 +7,16 @@ using QGIO
 using Base.Threads
 using StatsBase
 
+# test
+# ARGS = ["results/localancestry/localancestryjl/1_sequence_10_10_0.0.csv",
+#        "data/replicate_1/local_ancestries.csv",
+#        "results/accuracy/localancestryjl/1_sequence_10_10_0.0.csv"]
+
 # Get ARGS
 vcfpath = ARGS[1]
 truelapath = ARGS[2]
 outpath = ARGS[3]
+
 
 # Hard-coded variables
 gmappath = "data/rfmix_sequence.tsv"
@@ -33,7 +39,7 @@ leftjoin!(gmap, gmap2, on=names(gmap))
 gmap.array[ismissing.(gmap.array)] .= false
 
 # Get accuracy
-accuracies = evaluate(est, tru, gmap)
+accuracies = evaluate2(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
 gmap.incorrect = accuracies.pincorrect
 gmap.unassigned = accuracies.punassigned

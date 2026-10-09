@@ -40,7 +40,7 @@ gmap.array[ismissing.(gmap.array)] .= false
 tru.basepairs = UnitRange{Int}.(parse.(Int, replace.(tru.basepairs, r"\:.+" => "")), parse.(Int, replace.(tru.basepairs, r".+\:" => "")))
 
 # Get accuracy
-accuracies = evaluate(est, tru, gmap)
+accuracies = evaluate2(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
 gmap.incorrect = accuracies.pincorrect
 gmap.unassigned = accuracies.punassigned

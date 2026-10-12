@@ -8,9 +8,9 @@ using Base.Threads
 using StatsBase
 
 # test
-# ARGS = ["results/localancestry/localancestryjl/1_sequence_10_10_0.0.csv",
+# ARGS = ["results/localancestry/localancestryjl/1_array_10_10_1.0.csv",
 #        "data/replicate_1/local_ancestries.csv",
-#        "results/accuracy/localancestryjl/1_sequence_10_10_0.0.csv"]
+#        "results/accuracy/localancestryjl/1_array_10_10_1.0.csv"]
 
 # Get ARGS
 vcfpath = ARGS[1]
@@ -39,11 +39,15 @@ leftjoin!(gmap, gmap2, on=names(gmap))
 gmap.array[ismissing.(gmap.array)] .= false
 
 # Get accuracy
-accuracies = evaluate2(est, tru, gmap)
+accuracies = evaluate(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
 gmap.incorrect = accuracies.pincorrect
 gmap.unassigned = accuracies.punassigned
 println(mean(gmap.accuracy[Bool.(gmap.array)]))
+
+# Maybe subset
+arrayfile = contains(vcfpath, "_array_")
+arrayfile ? deleteat!(gmap, .~gmap.array) : nothing
 
 # Write output
 CSV.write(outpath, gmap)

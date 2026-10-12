@@ -56,11 +56,15 @@ for i in axes(est, 1)
 end
 
 # Get accuracy
-accuracies = evaluate2(est, tru, gmap)
+accuracies = evaluate(est, tru, gmap)
 gmap.accuracy = accuracies.pcorrect
 gmap.incorrect = accuracies.pincorrect
 gmap.unassigned = accuracies.punassigned
 println(mean(gmap.accuracy[Bool.(gmap.array)]))
+
+# Maybe subset
+arrayfile = contains(vcfpath, "_array_")
+arrayfile ? deleteat!(gmap, .~gmap.array) : nothing
 
 # Write output
 CSV.write(outpath, gmap)

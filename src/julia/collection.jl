@@ -171,40 +171,6 @@ function SLURM_jobinfo(j, i)
     end
 end
 
-function evaluate(predla, truela, gmap)
-
-    nhaplotypes = nrow(unique(predla[:, ["individual", "haplotype"]]))
-    outdict = Dict(gmap[!, "position(bp)"] .=> 1:nrow(gmap))
-    out = DataFrame(locus=1:nrow(gmap), ncorrect=0, incorrect=0, unassigned=nhaplotypes)
-    wlock = ReentrantLock()
-    @threads for i in axes(truela, 1)
-        tmp = predla[(predla.individual.==truela.individual[i]).&(predla.haplotype.==truela.haplotype[i]).&(length.(intersect.([truela.basepairs[i]], predla.basepairs)).>0), :]
-
-        if nrow(tmp) > 0
-            itstart = searchsortedfirst(gmap[!, "position(bp)"], first(truela.basepairs[i]))
-            tstart = gmap[itstart, "position(bp)"]
-            tend = gmap[max(itstart, searchsortedfirst(gmap[!, "position(bp)"], last(truela.basepairs[i])) - 1), "position(bp)"]
-            for j in axes(tmp, 1)
-                start = outdict[max(first(tmp.basepairs[j]), tstart)]
-                stop = outdict[min(last(tmp.basepairs[j]), tend)]
-
-                @lock wlock out.unassigned[start:stop] .-= 1
-
-                if truela.ancestry[i] == tmp.ancestry[j]
-                    @lock wlock out.ncorrect[start:stop] .+= 1
-                else
-                    @lock wlock out.incorrect[start:stop] .+= 1
-                end
-            end
-        end
-    end
-    out.pcorrect = out.ncorrect ./ nhaplotypes
-    out.pincorrect = out.incorrect ./ nhaplotypes
-    out.punassigned = out.unassigned ./ nhaplotypes
-    return out
-end
-
-
 function expand_grid(; kwargs...)
     thistuple = Base.product(values(kwargs)...) |> collect |> pairs
     out = DataFrame()
@@ -270,70 +236,88 @@ function overlap_matrix(tru, est)
 end
 
 
-function evaluate2(predla::DataFrame, truela::DataFrame, gmap::DataFrame)
+function evaluate(predla::DataFrame, truela::DataFrame, gmap::DataFrame)
+
+    # Loci
     pos = Vector(gmap[!, "position(bp)"])
     L = length(pos)
+    
+    # Predicted
+    p_ind = predla.individual
+    p_hap = predla.haplotype
+    p_bp  = predla.basepairs
+    p_anc = predla.ancestry
 
-    p_ind = predla.individual; p_hap = predla.haplotype
-    p_bp  = predla.basepairs;  p_anc = predla.ancestry
-    t_ind = truela.individual; t_hap = truela.haplotype
-    t_bp  = truela.basepairs;  t_anc = truela.ancestry
+    # True
+    t_ind = truela.individual
+    t_hap = truela.haplotype
+    t_bp  = truela.basepairs
+    t_anc = truela.ancestry
 
+    # Collect predicted haplotypes
     pred_idx = Dict{Tuple{eltype(p_ind),eltype(p_hap)},Vector{Int}}()
     for j in eachindex(p_ind)
         push!(get!(pred_idx, (p_ind[j], p_hap[j]), Int[]), j)
     end
+
     nhaplotypes = length(pred_idx)
 
-    nt = nthreads()
-    ncorrect   = [zeros(Int, L) for _ in 1:nt]
-    nincorrect = [zeros(Int, L) for _ in 1:nt]
-    nunassign  = [zeros(Int, L) for _ in 1:nt]
+    # Setup for multithreading
+    ncorrect   = zeros(Int, L)
+    nassigned = zeros(Int, L)
 
     # explicit row chunks: one task per chunk, each writes only its own arrays
-    rows = collect(1:length(t_ind))
-    chunksize = cld(length(rows), nt)
-    chunks = [rows[i:min(i+chunksize-1, end)] for i in 1:chunksize:length(rows)]
+    for i in axes(t_ind, 1)
 
-    @threads for c in eachindex(chunks)
-        tid = c   # chunk-local, never a thread id
-        for i in chunks[c]
-            r = get(pred_idx, (t_ind[i], t_hap[i]), nothing)
-            r === nothing && continue
+        r = get(pred_idx, (t_ind[i], t_hap[i]), nothing)
+        r === nothing && continue
 
-            itstart = searchsortedfirst(pos, first(t_bp[i]))
-            itstart > L && continue
-            tstart = pos[itstart]
-            itend = max(itstart, searchsortedfirst(pos, last(t_bp[i])) - 1)
-            tend = pos[itend]
+        # Get true indicies
+        itstart = searchsortedfirst(pos, first(t_bp[i]))
+        itstart > L && continue
+        itend = max(itstart, searchsortedfirst(pos, last(t_bp[i])))
+        itend = min(length(pos), itend)
+        
+        # Solve that there may be positions in true that are not in gmap
+        # searchsorted returns the would-be position if the value had been in the sorted list
+        # This is not correct for our use case for itend
+        pos[itstart] == first(t_bp[i]) ? nothing : nothing
+        pos[itend] == last(t_bp[i]) ? nothing : itend -= 1
+        
+        # Get true positions
+        tstart = pos[itstart]
+        tend = pos[itend]
 
-            for j in r
-                b = p_bp[j]
-                lo = max(first(b), tstart)
-                hi = min(last(b), tend)
-                hi < lo && continue
-
-                # all markers within [lo, hi] — no exact-match requirement
-                start = searchsortedfirst(pos, lo)
-                stop  = searchsortedlast(pos, hi)
-                stop < start && continue
-
-                if t_anc[i] == p_anc[j]
-                    for k in start:stop; ncorrect[tid][k] += 1; end
-                else
-                    for k in start:stop; nincorrect[tid][k] += 1; end
-                end
-                for k in start:stop; nunassign[tid][k] += 1; end
+        for j in r
+            # Get overlap between predicted and true
+            b = p_bp[j]
+            lo = max(first(b), tstart)
+            hi = min(last(b), tend)
+            hi < lo && continue
+            
+            # Get location in position vector
+            start = searchsortedfirst(pos, lo)
+            stop  = searchsortedlast(pos, hi)
+            stop < start && continue
+            ~(in(hi, pos) & in(lo, pos)) && error("some of the predicted positions are not in gmap")
+            
+            # 
+            if t_anc[i] == p_anc[j]
+                for k in start:stop; ncorrect[k] += 1; end
             end
+            for k in start:stop; nassigned[k] += 1; end
         end
     end
 
     out = DataFrame(locus = 1:L)
-    out.ncorrect   = reduce(+, ncorrect)
-    out.incorrect  = reduce(+, nincorrect)
-    out.unassigned = nhaplotypes .- reduce(+, nunassign)
-    out.pcorrect    = out.ncorrect   ./ nhaplotypes
+    out.pos = pos
+    out.correct   = ncorrect
+    out.incorrect  = nassigned - ncorrect
+    out.unassigned = nhaplotypes .- nassigned
+    out.pcorrect    = out.correct   ./ nhaplotypes
     out.pincorrect  = out.incorrect  ./ nhaplotypes
     out.punassigned = out.unassigned ./ nhaplotypes
     return out
 end
+
+

@@ -46,8 +46,8 @@ versions:
 # runtime: minutes, mem_mb: MB. Missing markerset/tool -> fallback in Snakefile.
 estimatelimits:
   localancestryjl:
-    array:    {runtime: 2,   mem_mb: 4000}
-    sequence: {runtime: 5,   mem_mb: 16000}
+    array:    {runtime: 10,   mem_mb: 10000}
+    sequence: {runtime: 15,   mem_mb: 30000}
   recombmix:
     array:    {runtime: 5,   mem_mb: 1000}
     sequence: {runtime: 30,  mem_mb: 2000}

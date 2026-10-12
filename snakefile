@@ -46,9 +46,13 @@ rule all:
         expand("results/accuracy/gnomix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
         expand("results/accuracy/recombmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
         expand("results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations)
+    resources:
+        mem_mb = 100000,
+        runtime = 180
     shell:
         r"""
-        julia --project=. -e 'println("WOHOO")'
+        julia --project=. src/julia/benchmark.jl
+        julia --project=. src/julia/accuracies.jl
         """
 
 # 

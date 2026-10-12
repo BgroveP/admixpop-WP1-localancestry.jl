@@ -34,7 +34,8 @@ rule estimate_localancestryjl:
                 "{input.ancestral}",
                 "{input.admixed}",
                 "{input.globalancestries}",
-                threshold={wildcards.t}
+                threshold={wildcards.t},
+                maf=0.000
             )
 
             CSV.write("{output.result}", lajl)

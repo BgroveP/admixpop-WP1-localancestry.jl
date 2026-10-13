@@ -43,8 +43,8 @@ summary = sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset, :thr
 deleteat!(summary, summary.threshold .!= defaultt)
 unstacked_summary_time = unstack(summary[:, Not(:max_rss_mean)], :software, :s_mean)
 unstacked_summary_RAM = unstack(summary[:, Not(:s_mean)], :software, :max_rss_mean)
-CSV.write("benchmarks/summary_RAM_mean.csv", unstacked_summary_RAM)
-CSV.write("benchmarks/summary_time_mean.csv", unstacked_summary_time)
+CSV.write("results/summary/RAM_use_mean.csv", unstacked_summary_RAM)
+CSV.write("results/summary/time_use_mean.csv", unstacked_summary_time)
 
 # Maxes for slurm resource allocations
 summary = sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset, :threshold]), [:s, :max_rss] .=> maximum .=> [:s, :max_rss]), :s)
@@ -53,16 +53,5 @@ unstacked_summary_time = unstack(summary[:, Not(:max_rss)], :software, :s)
 unstacked_summary_RAM = unstack(summary[:, Not(:s)], :software, :max_rss)
 unstacked_summary_time[:, 5:end] = unstacked_summary_time[:, 5:end] ./ 60
 unstacked_summary_RAM[:, 5:end] = unstacked_summary_RAM[:, 5:end] ./ 1000
-CSV.write("benchmarks/summary_RAM_max.csv", unstacked_summary_RAM)
-CSV.write("benchmarks/summary_time_max.csv", unstacked_summary_time)
-
-# numbers
-summary = sort(combine(groupby(o, [:software, :ancgen, :admgen, :markerset, :threshold]), [:s, :max_rss] .=> maximum .=> [:s, :max_rss]), :s)
-deleteat!(summary, summary.threshold .!= defaultt)
-unstacked_summary_time = unstack(summary[:, Not(:max_rss)], :software, :s)
-unstacked_summary_RAM = unstack(summary[:, Not(:s)], :software, :max_rss)
-unstacked_summary_time[:, 5:end] = unstacked_summary_time[:, 5:end] ./ 60
-unstacked_summary_RAM[:, 5:end] = unstacked_summary_RAM[:, 5:end] ./ 1000
-CSV.write("benchmarks/summary_RAM_max.csv", unstacked_summary_RAM)
-CSV.write("benchmarks/summary_time_max.csv", unstacked_summary_time)
-
+CSV.write("results/summary/RAM_use_max.csv", unstacked_summary_RAM)
+CSV.write("results/summary/time_use_max.csv", unstacked_summary_time)

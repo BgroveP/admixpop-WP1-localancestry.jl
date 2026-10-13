@@ -15,7 +15,7 @@ markersets: ["array", "sequence"]
 lathresholds: [0.00, 0.20, 0.40, 0.60, 0.80, 1.00]
 
 # --- Test variables --- #
-replicates: [1, 2]
+#replicates: [1, 2]
 #markersets: ["array"]
 
 # --- Paths ---

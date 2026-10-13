@@ -92,7 +92,8 @@ rule sparsepainter_setup:
 
 rule gnomix_setup:
     output:
-        "gnomix/gnomix.py"
+        "gnomix/gnomix.py",
+        "gnomix/config.yaml"
     shell:
         r"""
         rm -rf gnomix

@@ -128,7 +128,7 @@ rule estimate_flareclust:
 
 rule estimate_gnomix:
     input:
-#        "gnomix/config.yaml",
+        "gnomix/config.yaml",
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
         ancestral_tbi = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz.tbi",
         admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",

@@ -13,6 +13,7 @@ deps/localancestry.so
 data
 bin
 admixture
+admixture_linux*
 flare
 gnomix
 results

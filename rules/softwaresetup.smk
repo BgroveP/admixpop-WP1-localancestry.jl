@@ -116,5 +116,6 @@ rule admixture_setup:
         wget https://dalexander.github.io/admixture/binaries/admixture_linux-1.4.0.tar.gz
         tar xf admixture_linux-1.4.0.tar.gz
         rm -f admixture_linux-1.4.0.tar.gz
-        mv admixture_linux-1.4.0 ./admixture
+        mv -u admixture_linux-1.4.0/* ./admixture/
+        rm -rf admixture_linux-1.4.0
         """

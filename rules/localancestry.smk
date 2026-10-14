@@ -16,7 +16,7 @@ rule estimate_localancestryjl:
         admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",
         globalancestries = "data/replicate_{r}/global_ancestries.csv"
     output:
-        result = "results/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv",
+        result = config["paths"]["tmpdir"] + "/localancestry/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv",
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("localancestryjl", wc.m),
@@ -50,10 +50,10 @@ rule estimate_rfmix:
         globalancestries = "data/replicate_{r}/global_ancestries_rfmix.tsv",
         genomicmap = "data/rfmix_{m}.tsv",
     output:
-        "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.fb.tsv",
-        "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.msp.tsv",
-        "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.rfmix.Q",
-        "results/localancestry/rfmix/{r}_{m}_{g1}_{g2}.sis.tsv"
+        config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.fb.tsv",
+        config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.msp.tsv",
+        config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.rfmix.Q",
+        config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.sis.tsv"
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("rfmix", wc.m),
@@ -61,7 +61,7 @@ rule estimate_rfmix:
     benchmark:
         "benchmarks/rfmix/{r}_{m}_{g1}_{g2}.tsv"
     shell:
-        "rfmix/rfmix --n-threads={threads} -f {input.admixed} -r {input.ancestral} -m {input.globalancestries} -g {input.genomicmap} -o results/localancestry/rfmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} --chromosome=chr22 "
+        "rfmix/rfmix --n-threads={threads} -f {input.admixed} -r {input.ancestral} -m {input.globalancestries} -g {input.genomicmap} -o {resources.tmpdir}/localancestry/rfmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} --chromosome=chr22 "
 
 
 rule estimate_flare:
@@ -71,7 +71,7 @@ rule estimate_flare:
         globalancestries = "data/replicate_{r}/global_ancestries_flare.ssv",
         genomicmap = "data/flare_{m}.ssv",
     output:
-        "results/localancestry/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
+        config["paths"]["tmpdir"] + "/localancestry/flare/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("flare", wc.m),
@@ -84,7 +84,7 @@ rule estimate_flare:
                 min-mac=0 min-maf=0.0 \
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \
-                out=results/localancestry/flare/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
+                out={resources.tmpdir}/localancestry/flare/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
 
@@ -95,7 +95,7 @@ rule estimate_flareclust:
         globalancestries = "data/replicate_{r}/global_ancestries_flare.ssv",
         genomicmap = "data/flare_{m}.ssv",
     output:
-        "results/localancestry/flareclust/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
+        config["paths"]["tmpdir"] + "/localancestry/flareclust/{r}_{m}_{g1}_{g2}.anc.vcf.gz",
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("flareclust", wc.m),
@@ -109,20 +109,20 @@ rule estimate_flareclust:
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \
                 panel-probs=true \
-                out=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
+                out={resources.tmpdir}/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         
             python3 flare/create_model_file.py \
             3 \
-            results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.panels \
-            results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}
+            {resources.tmpdir}/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.panels \
+            {resources.tmpdir}/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}
 
             java -jar flare/flare.jar \
                 min-mac=0 min-maf=0.0 \
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \
-                model=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.model \
+                model={resources.tmpdir}/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.model \
                 update-p=true \
-                out=results/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
+                out={resources.tmpdir}/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
 
@@ -136,7 +136,7 @@ rule estimate_gnomix:
         globalancestries = "data/replicate_{r}/global_ancestries_gnomix_{g1}.tsv",
         genomicmap = "data/rfmix_{m}.tsv",
     output:
-        "results/localancestry/gnomix/{r}_{m}_{g1}_{g2}/query_results.msp",
+        config["paths"]["tmpdir"] + "/localancestry/gnomix/{r}_{m}_{g1}_{g2}/query_results.msp",
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("gnomix", wc.m),
@@ -151,7 +151,7 @@ rule estimate_gnomix:
             PYTHONWARNINGS="ignore::FutureWarning" \
             python3 gnomix/gnomix.py \
             {input.admixed} \
-            results/localancestry/gnomix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} \
+            {resources.tmpdir}/localancestry/gnomix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} \
             chr22 \
             False \
             {input.genomicmap} \
@@ -170,7 +170,7 @@ rule estimate_recombmix:
         genomicmap = "data/recombmix_{m}.tsv",
         poplabels = "data/replicate_{r}/global_ancestries_rfmix.tsv",
     output:
-        "results/localancestry/recombmix/{r}_{m}_{g1}_{g2}/inferred_local_ancestral_values.txt",
+        config["paths"]["tmpdir"] + "/localancestry/recombmix/{r}_{m}_{g1}_{g2}/inferred_local_ancestral_values.txt",
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("recombmix", wc.m),
@@ -178,10 +178,10 @@ rule estimate_recombmix:
     benchmark:
         "benchmarks/recombmix/{r}_{m}_{g1}_{g2}.tsv"
     params:
-        outprefix = "results/localancestry/recombmix/{r}_{m}_{g1}_{g2}",
+        outprefix = config["paths"]["tmpdir"] + "/localancestry/recombmix/{r}_{m}_{g1}_{g2}",
     shell:
         r"""
-            Recomb-Mix/RecombMix -t {threads} -p {input.ancestral} -a {input.poplabels} -q {input.admixed} -g {input.genomicmap} -o results/localancestry/recombmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
+            Recomb-Mix/RecombMix -t {threads} -p {input.ancestral} -a {input.poplabels} -q {input.admixed} -g {input.genomicmap} -o {resources.tmpdir}/localancestry/recombmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} 
         """
 
 
@@ -193,7 +193,7 @@ rule estimate_sparsepainter:
         popfile = "data/replicate_{r}/global_ancestries_sparsepainter_{g1}.tsv",
         namefile = "data/replicate_{r}/individuals_admixed_gen{g2}_10.txt",
     output:
-        prob = "results/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}_prob.txt.gz",
+        prob = config["paths"]["tmpdir"] + "/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}_prob.txt.gz",
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("sparsepainter", wc.m),
@@ -201,7 +201,7 @@ rule estimate_sparsepainter:
     benchmark:
         "benchmarks/sparsepainter/{r}_{m}_{g1}_{g2}.tsv"
     params:
-        out = "results/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}",
+        out = config["paths"]["tmpdir"] + "/localancestry/sparsepainter/{r}_{m}_{g1}_{g2}",
     shell:
         r"""
         

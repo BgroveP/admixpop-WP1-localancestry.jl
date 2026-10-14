@@ -28,7 +28,7 @@ paths:
   zenodourl: "https://zenodo.org/records/19544041/files/simulated_data.tgz?download=1"
   zenodocontent: ["admixed.vcf.gz", "admixed.vcf.gz.tbi", "ancestral.vcf.gz", "ancestral.vcf.gz.tbi", "global_ancestries.csv", "local_ancestries.csv"]
   zenodopath: "data/tmp/simulated_data.tgz"
-  tmpdir: "/usr/home/ironbank/researchdata/qgg/bgp/admixpop-WP1-localancestry.jl"
+  tmpdir: "/usr/home/ironbank/researchdata/bgp_public/admixpop-WP1-localancestry.jl"
 
 # --- 1000 Genomes reference data ---
 genomes1k:

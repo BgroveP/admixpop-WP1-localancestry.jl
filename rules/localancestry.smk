@@ -76,11 +76,13 @@ rule estimate_flare:
     resources:
         mem_mb = lambda wc: _mem("flare", wc.m),
         runtime = lambda wc: _runtime("flare", wc.m),
+    params:
+        heap_mb = lambda wc: int(_mem("flare", wc.m) * 0.75),
     benchmark:
         "benchmarks/flare/{r}_{m}_{g1}_{g2}.tsv"
     shell:
         r"""
-            java -jar flare/flare.jar \
+            java  -Xmx{params.heap_mb}m -jar flare/flare.jar \
                 min-mac=0 min-maf=0.0 \
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \
@@ -100,11 +102,13 @@ rule estimate_flareclust:
     resources:
         mem_mb = lambda wc: _mem("flareclust", wc.m),
         runtime = lambda wc: _runtime("flareclust", wc.m),
+    params:
+        heap_mb = lambda wc: int(_mem("flare", wc.m) * 0.75),
     benchmark:
         "benchmarks/flareclust/{r}_{m}_{g1}_{g2}.tsv"
     shell:
         r"""
-            java -jar flare/flare.jar \
+            java  -Xmx{params.heap_mb}m -jar flare/flare.jar \
                 min-mac=0 min-maf=0.0 \
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \
@@ -116,7 +120,7 @@ rule estimate_flareclust:
             {resources.tmpdir}/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.panels \
             {resources.tmpdir}/localancestry/flareclust/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}
 
-            java -jar flare/flare.jar \
+            java  -Xmx{params.heap_mb}m -jar flare/flare.jar \
                 min-mac=0 min-maf=0.0 \
                 ref={input.ancestral} ref-panel={input.globalancestries} \
                 gt={input.admixed} map={input.genomicmap} \

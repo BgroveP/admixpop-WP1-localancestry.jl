@@ -10,3 +10,4 @@ retries: 2
 default-resources:
   mem_mb: 5000
   runtime: 60
+  tmpdir: "/usr/home/ironbank/researchdata/bgp_public/admixpop-WP1-localancestry.jl"

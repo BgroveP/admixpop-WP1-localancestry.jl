@@ -61,7 +61,11 @@ rule estimate_rfmix:
     benchmark:
         "benchmarks/rfmix/{r}_{m}_{g1}_{g2}.tsv"
     shell:
-        "rfmix/rfmix --n-threads={threads} -f {input.admixed} -r {input.ancestral} -m {input.globalancestries} -g {input.genomicmap} -o {resources.tmpdir}/localancestry/rfmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} --chromosome=chr22 "
+        """
+        rfmix/rfmix --n-threads={threads} -f {input.admixed} -r {input.ancestral} -m {input.globalancestries} -g {input.genomicmap} -o {resources.tmpdir}/localancestry/rfmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2} --chromosome=chr22 
+        rm {resources.tmpdir}/localancestry/rfmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.fb.tsv
+        rm {resources.tmpdir}/localancestry/rfmix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}.sis.tsv
+        """
 
 
 rule estimate_flare:
@@ -162,6 +166,8 @@ rule estimate_gnomix:
             {input.ancestral} \
             {input.globalancestries} \
             gnomix/config.yaml 
+
+            rm -rf {resources.tmpdir}/localancestry/gnomix/{wildcards.r}_{wildcards.m}_{wildcards.g1}_{wildcards.g2}/generated_data
         """
 
 

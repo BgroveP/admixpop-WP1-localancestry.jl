@@ -50,10 +50,8 @@ rule estimate_rfmix:
         globalancestries = "data/replicate_{r}/global_ancestries_rfmix.tsv",
         genomicmap = "data/rfmix_{m}.tsv",
     output:
-        config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.fb.tsv",
         config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.msp.tsv",
         config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.rfmix.Q",
-        config["paths"]["tmpdir"] + "/localancestry/rfmix/{r}_{m}_{g1}_{g2}.sis.tsv"
     threads: 24
     resources:
         mem_mb = lambda wc: _mem("rfmix", wc.m),

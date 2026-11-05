@@ -11,15 +11,6 @@ using StatsBase
 vcfpath = ARGS[1]
 truelapath = ARGS[2]
 outpath = ARGS[3]
-println("
-    read commandline arguments:
-        - path: $(vcfpath)
-        - true: $(truelapath)
-        - out:  $(outpath)
-
-    Also:
-        - threads: $(nthreads())
-")
 
 # Read custom function
 println("Reading custom functions")

@@ -7,7 +7,6 @@ using DataFrames
 # Paths 
 resultspath = "results/summary/"
 
-
 # Sensitivity plots
 grcols = [:software, :markerset, :admgen]
 transform!(groupby(olong, grcols),

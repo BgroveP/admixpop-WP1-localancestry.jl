@@ -12,38 +12,39 @@ using StatsBase
 defaultt = 0.6
 
 # Get list of software
-softwares = ["flare","flareclust","recombmix", "gnomix","localancestryjl","rfmix","sparsepainter"]
+softwares = ["flare","recombmix", "gnomix","localancestryjl","rfmix","sparsepainter"]
 softwares = softwares[isdir.("results/accuracy/" .* softwares)]
 softwares = softwares[softwares .!= "flareclust"]
 nsoftwares = length(softwares)
 
 # Read accuracies
 o = Vector{Vector{DataFrame}}(undef, nsoftwares)
-@threads for i in axes(softwares, 1)
+for i in axes(softwares, 1)
     s = softwares[i]
     b = readdir("results/accuracy/$(s)", join = true)
     o[i] = Vector{DataFrame}(undef, length(b))
     
     for (ji, j) in enumerate(b)
         println("$(s), $(j)")
-        o[i][ji] = CSV.read(j, 
-        DataFrame, 
-        types = [String, Int, Float64, Bool, Float64, Float64, Float64],
-        stripwhitespace = true)
-        n = nrow(o[i][ji])
-        parts = split(j, ['_', '.', '/'])
+            o[i][ji] = CSV.read(j, 
+            DataFrame, 
+            types = [String, Int, Float64, Bool, Float64, Float64, Float64],
+            stripwhitespace = true,
+            strict = true)
+            n = nrow(o[i][ji])
+            parts = split(j, ['_', '.', '/'])
 
-    # Get information
-    o[i][ji].software  .= s
-    o[i][ji].replicate .= parse(Int, parts[4])
-    o[i][ji].markerset .= parts[5]
-    o[i][ji].ancgen    .= parse(Int, parts[6])
-    o[i][ji].admgen    .= parse(Int, parts[7])
-    o[i][ji].threshold .= defaultt
+            # Get information
+            o[i][ji].software  .= s
+            o[i][ji].replicate .= parse(Int, parts[4])
+            o[i][ji].markerset .= parts[5]
+            o[i][ji].ancgen    .= parse(Int, parts[6])
+            o[i][ji].admgen    .= parse(Int, parts[7])
+            o[i][ji].threshold .= defaultt
 
-        if s == "localancestryjl"
+            if s == "localancestryjl"
             o[i][ji].threshold .= parse(Int, parts[8]) + parse(Int, parts[9]) /10
-        end
+            end
     end
 end
 

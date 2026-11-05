@@ -51,3 +51,4 @@ arrayfile ? deleteat!(gmap, .~gmap.array) : nothing
 
 # Write output
 CSV.write(outpath, gmap)
+

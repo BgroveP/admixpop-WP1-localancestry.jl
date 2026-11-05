@@ -10,6 +10,10 @@ using StatsBase
 include("collection.jl")
 include("read_recombmix.jl")
 
+# Test
+# vcfpath = "/usr/home/ironbank/researchdata/bgp_public/admixpop-WP1-localancestry.jl/localancestry/recombmix/23_sequence_6_6/inferred_local_ancestral_values.txt"
+# truelapath = "data/replicate_23/local_ancestries.csv"
+# outpath = "results/accuracy/recombmix/23_sequence_6_6.csv"
 
 # Get ARGS
 vcfpath = ARGS[1]

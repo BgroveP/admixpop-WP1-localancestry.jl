@@ -243,16 +243,16 @@ function evaluate(predla::DataFrame, truela::DataFrame, gmap::DataFrame)
     L = length(pos)
     
     # Predicted
-    p_ind = predla.individual
-    p_hap = predla.haplotype
-    p_bp  = predla.basepairs
-    p_anc = predla.ancestry
+    p_ind = Vector(predla.individual)
+    p_hap = Vector(predla.haplotype)
+    p_bp  = Vector(predla.basepairs)
+    p_anc = Vector(predla.ancestry)
 
     # True
-    t_ind = truela.individual
-    t_hap = truela.haplotype
-    t_bp  = truela.basepairs
-    t_anc = truela.ancestry
+    t_ind = Vector(truela.individual)
+    t_hap = Vector(truela.haplotype)
+    t_bp  = Vector(truela.basepairs)
+    t_anc = Vector(truela.ancestry)
 
     # Collect predicted haplotypes
     pred_idx = Dict{Tuple{eltype(p_ind),eltype(p_hap)},Vector{Int}}()
@@ -272,21 +272,19 @@ function evaluate(predla::DataFrame, truela::DataFrame, gmap::DataFrame)
         r = get(pred_idx, (t_ind[i], t_hap[i]), nothing)
         r === nothing && continue
 
-        # Get true indicies
-        itstart = searchsortedfirst(pos, first(t_bp[i]))
-        itstart > L && continue
-        itend = max(itstart, searchsortedfirst(pos, last(t_bp[i])))
-        itend = min(length(pos), itend)
-        
-        # Solve that there may be positions in true that are not in gmap
-        # searchsorted returns the would-be position if the value had been in the sorted list
-        # This is not correct for our use case for itend
-        pos[itstart] == first(t_bp[i]) ? nothing : nothing
-        pos[itend] == last(t_bp[i]) ? nothing : itend -= 1
-        
-        # Get true positions
-        tstart = pos[itstart]
-        tend = pos[itend]
+# Get true indices
+itstart = searchsortedfirst(pos, first(t_bp[i]))
+itstart > L && continue                      # segment starts after last locus
+itend = searchsortedlast(pos, last(t_bp[i])) # last pos <= segment end
+itend < itstart && continue                   # no gmap positions inside segment
+
+# clamp to the positions actually covered by the true segment
+lo = first(t_bp[i]); hi = last(t_bp[i])
+pos[itstart] < lo && (itstart += 1)           # can't happen with searchsortedfirst, kept for safety
+itstart > itend && continue
+
+tstart = pos[itstart]
+tend   = pos[itend]
 
         for j in r
             # Get overlap between predicted and true
@@ -319,5 +317,3 @@ function evaluate(predla::DataFrame, truela::DataFrame, gmap::DataFrame)
     out.punassigned = out.unassigned ./ nhaplotypes
     return out
 end
-
-

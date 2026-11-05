@@ -92,8 +92,6 @@ rule admixture:
         "data/1kgenomes_all_individuals.tsv",
         "src/julia/filter_1kgenomes.jl",
         "src/julia/filter_1kgenomes2.jl",
-        "Manifest.toml",
-        "Project.toml",
         "admixture/admixture"
     output:
         "data/all_individuals.tsv",

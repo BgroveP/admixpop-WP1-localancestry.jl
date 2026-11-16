@@ -31,7 +31,7 @@ timeuse.statistic .= "time"
 # Remove the Sequence -> Array rows
 deleteat!(accuracy, accuracy.array .& (accuracy.markerset .== "sequence"))
 softwares = intersect(softwares, names(accuracy), names(RAMuse), names(timeuse))
-keepcols = ["ancgen", "admgen", "markerset", "threshold", "statistic"; softwares]
+keepcols = vcat(["ancgen", "admgen", "markerset", "threshold", "statistic"], softwares)
 o = vcat(accuracy[:, keepcols], RAMuse[:, keepcols], timeuse[:, keepcols])
 
 # Remove non-default thresholds

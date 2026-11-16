@@ -17,6 +17,13 @@ Pkg.add(name="LocalAncestry", version=localancestry_version)
 # Install a VCF parser from GitHub
 Pkg.add(url="https://github.com/BgroveP/QGIO.jl", rev=qgio_commit)
 
+# Make sure everything in the manifest is installed, then precompile all packages once,
+# here, for the current JULIA_CPU_TARGET. Otherwise the first pipeline jobs would all
+# precompile the same packages in parallel (slow, and fragile on a shared depot).
+println("JULIA_CPU_TARGET = ", get(ENV, "JULIA_CPU_TARGET", "(not set: caches are only valid for this CPU type)"))
+Pkg.instantiate()
+Pkg.precompile(strict = true)   # fail the job if any package does not precompile
+
 # Compile system image
 using PackageCompiler
 mkpath("deps")

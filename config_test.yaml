@@ -3,4 +3,3 @@
 replicates: [1, 2]
 markersets: ["array"]
 run_block_comparison: false
-run_realdata: false

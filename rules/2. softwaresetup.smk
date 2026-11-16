@@ -12,9 +12,6 @@ rule setup_julia:
     params:
         version = sw["localancestry"],
         qgio = sw["qgio_commit"]
-    # Package precompilation and system image code generation run in parallel.
-    # Set the task counts explicitly: Julia otherwise sizes them from the node's total
-    # core count, not from the cores SLURM allocated to the job.
     threads: 16
     resources:
         mem_mb = 32000,

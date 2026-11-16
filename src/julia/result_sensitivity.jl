@@ -31,7 +31,7 @@ timeuse.statistic .= "time"
 # Remove the Sequence -> Array rows
 deleteat!(accuracy, accuracy.array .& (accuracy.markerset .== "sequence"))
 softwares = intersect(softwares, names(accuracy), names(RAMuse), names(timeuse))
-keepcols = vcat(["ancgen", "admgen", "markerset", "threshold", "statistic"], softwares)
+keepcols = [["ancgen", "admgen", "markerset", "threshold", "statistic"]; softwares]
 o = vcat(accuracy[:, keepcols], RAMuse[:, keepcols], timeuse[:, keepcols])
 
 # Remove non-default thresholds
@@ -111,7 +111,6 @@ fig = draw(tmpplot,
     figure = (; size = (1000, 450)),
 	legend=(; position = :right, tellwidth = true), axis = (; xticklabelrotation = pi/4, yscale = log10), facet=(; linkxaxes=:colwise, linkyaxes=:rowwise))
 
-
 xlims!(fig.figure.content[1], 6.5,8.5)
 xlims!(fig.figure.content[2], 6.5,8.5)
 xlims!(fig.figure.content[3], 6.5,8.5)
@@ -123,30 +122,6 @@ xlims!(fig.figure.content[8], 0.8,3.2)
 xlims!(fig.figure.content[9], 0.8,3.2)
 save("plots/sensitivities.png", fig, px_per_unit = 2)
 save("plots/sensitivities.pdf", fig, px_per_unit = 2)
-
-### Accuracy of each tool against RFMix (same scenario), with the identity line
-if "rfmix" in softwares && length(softwares) > 1
-	others = setdiff(softwares, ["rfmix"])
-	orfmix = stack(o, others, variable_name = "software", value_name = "accuracy")
-	deleteat!(orfmix, orfmix.statistic .!= "accuracy")
-	dropmissing!(orfmix, [:accuracy, :rfmix])
-	orfmix.software = [get(tooldict, s, s) for s in string.(orfmix.software)]
-	lims = extrema([orfmix.rfmix; orfmix.accuracy])
-
-	tmpplot =
-		data(orfmix) *
-		mapping(
-			:rfmix => "Accuracy (RFMix)",
-			:accuracy => "Accuracy (Other)",
-			color = :software => "LAI tool") *
-		visual(Scatter) +
-		data(DataFrame(x = collect(lims), y = collect(lims))) *
-		mapping(:x => "Accuracy (RFMix)", :y => "Accuracy (Other)") * visual(Lines)
-
-	fig = draw(tmpplot)
-	save("plots/accuracy_vs_rfmix.png", fig)
-	save("plots/accuracy_vs_rfmix.pdf", fig)
-end
 
 # Numbers for the article
 ### Average accuracies across all scenarios

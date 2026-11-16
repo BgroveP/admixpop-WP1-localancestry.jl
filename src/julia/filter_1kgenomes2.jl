@@ -33,6 +33,7 @@ gas.keep = gas.pop .>= 0.99
 
 # Print summaries
 sort(combine(groupby(gas, [:superpopulation, :population]), :keep .=> [length, mean, sum]), [:superpopulation, :keep_mean])
+sort(combine(groupby(gas, [:superpopulation]), :keep .=> [length, mean, sum]), [:superpopulation, :keep_mean])
 
 # Print remaining
 deleteat!(gas, .~gas.keep)

@@ -12,14 +12,14 @@ using StatsBase
 defaultt = 0.6
 
 # Get list of software
-softwares = ["flare","recombmix", "gnomix","localancestryjl","rfmix","sparsepainter"]
+softwares = ["flare", "recombmix", "gnomix","localancestryjl","rfmix","sparsepainter"]
 softwares = softwares[isdir.("results/accuracy/" .* softwares)]
 softwares = softwares[softwares .!= "flareclust"]
 nsoftwares = length(softwares)
 
 # Read accuracies
 o = Vector{Vector{DataFrame}}(undef, nsoftwares)
-for i in axes(softwares, 1)
+@threads for i in axes(softwares, 1)
     s = softwares[i]
     b = readdir("results/accuracy/$(s)", join = true)
     o[i] = Vector{DataFrame}(undef, length(b))
@@ -69,34 +69,70 @@ owide_means = sort(unstack(olong_means, :software, :accuracy), [:threshold, :arr
 CSV.write("results/summary/accuracy.csv", owide_means)
 
 olong_means2 = combine(groupby(olong, ["software", "ancgen", "admgen", "markerset", "array", "threshold", "replicate"]), :accuracy => mean => :accuracy)
-olong_sds = combine(groupby(olong_means2, ["software", "ancgen", "admgen", "markerset", "array", "threshold"]), :accuracy => (x -> sqrt(var(x))) => :accuracy)
-owide_sds = sort(unstack(olong_sds, :software, :accuracy), [:threshold, :array, :ancgen, :admgen, :markerset])
+olong_sds = combine(groupby(olong_means2, ["software", "ancgen", "admgen", "markerset", "array", "threshold"]), :accuracy => (x -> sqrt(var(x))) => :sd)
+owide_sds = sort(unstack(olong_sds, :software, :sd), [:threshold, :array, :ancgen, :admgen, :markerset])
 CSV.write("results/summary/accuracy_sds.csv", owide_sds)
 
-# Plot accuracy across genome (sequence)
-omostinfo = olong[(olong.ancgen .== 6) .&(olong.admgen .== 6) .& (olong.markerset .== "sequence") .& (olong.threshold .== defaultt),:]
-locus_means = combine(groupby(omostinfo, ["software", "position(bp)"]), :accuracy => mean => :accuracy)
-rename!(locus_means, [:software, :position, :accuracy])
+mean(olong_sds.sd)*100
+minimum(olong_sds.sd)*100
+maximum(olong_sds.sd)*100
 
+# Write table
+tbl_ancgen = 10
+meansandsds = leftjoin(olong_means, olong_sds, on = names(olong_means)[1:6])
+deleteat!(meansandsds, meansandsds.ancgen .!= tbl_ancgen)
+meansandsds.admgen = string.(meansandsds.admgen) 
 
-tplot = data(locus_means) *
-		  mapping(
-			  :position => "Chr22:basepair",
-              :accuracy => "Accuracy",
-			  color = :software => "Software") *
-		  visual(Lines) |> (x -> draw(x, axis = (; xticklabelrotation = pi / 4)))
-save("plots/Accuracy_chromosomewide.png", tplot)
+meansandsdswider = unstack(meansandsds[:, [:software, :markerset, :accuracy, :array, :admgen, :threshold]], :admgen, :accuracy)
+sort!(meansandsdswider, [:markerset, :software])
+colorder = ["10", "8", "6"]
+meansandsdswider = meansandsdswider[:, [["software", "markerset", "threshold", "array"]; colorder]]
+meansandsdswider.outstring .= ""
+for i in axes(meansandsdswider, 1)
+    t = [meansandsdswider[i, j] for j in 5:(ncol(meansandsdswider) - 1)]
+    meansandsdswider[i,end] = join(round.(100*t, digits = 1), " & ")
+end
+sort!(meansandsdswider, [:markerset, :array, :software, :threshold])
+CSV.write("tbloutstring_accuracy.csv", meansandsdswider[:, [:threshold, :array, :software, :markerset, :outstring]])
 
-# Plot across threshold for localancestryjl
-othreshold = olong[(olong.ancgen .== 6) .&(olong.admgen .== 6) .& (olong.markerset .== "sequence") .& (.~(olong.array)) .& (olong.software .== "localancestryjl"),:]
-locus_means_threshold = combine(groupby(othreshold, ["threshold", "position(bp)"]), :accuracy => mean => :accuracy)
-rename!(locus_means_threshold, [:threshold, :position, :accuracy])
+# Plot histogram of accuracies
+olong.software = replace.(string.(olong.software), 
+							"flare" => "FLARE", "localancestryjl" => "LocalAncestry.jl", 
+							"gnomix" => "Gnomix", "recombmix" => "Recomb-Mix", 
+							"rfmix" => "RFMix", "sparsepainter" => "SparsePainter")
+olong.markerset = replace.(string.(olong.markerset), "array" => "Array", "sequence" => "Sequence")
 
-tplot = data(locus_means_threshold) *
-		  mapping(
-			  :position => "Chr22:basepair",
-              :accuracy => "Accuracy",
-              group = :threshold,
-			  color = :threshold => "Threshold") *
-		  visual(Lines) |> (x -> draw(x, axis = (; xticklabelrotation = pi / 4)))
-save("plots/Accuracy_chromosomewide_localancestryjl_thresholds.png", tplot)
+tmpplot =
+	data(olong) *
+	mapping(
+		:accuracy => "Accuracy",
+        group = :markerset,
+        row = :software,
+		color = :software => "LAI tool") *
+	visual(Density) 
+fig = draw(tmpplot)
+
+save("plots/accuracy_density.png", fig)
+save("plots/accuracy_density.pdf", fig)
+
+# Plot
+obp = combine(groupby(olong, ["position(bp)", "software", "array", "markerset", "ancgen", "admgen"]), :accuracy => mean => :accuracy)
+obp.x = obp[!,"position(bp)"]
+sort!(obp, :x)
+
+deleteat!(obp, obp.ancgen .!= 10)
+deleteat!(obp, obp.admgen .!= 10)
+deleteat!(obp, .~obp.array)
+
+tmpplot =
+	data(obp) *
+	mapping(
+        :x,
+		:accuracy => "Accuracy",
+        col = :markerset,
+        color = :software => "LAI tool") *
+	visual(Lines) 
+fig = draw(tmpplot)
+
+save("plots/accuracy_acrossgenome.png", fig)
+save("plots/accuracy_acrossgenome.pdf", fig)

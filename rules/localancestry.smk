@@ -10,7 +10,6 @@ def _mem(tool, markerset):
 
 rule estimate_localancestryjl:
     input:
-        "src/julia/setup.jl",
         "deps/localancestry.so",
         ancestral = "data/replicate_{r}/ancestral_{m}_{g1}_10.vcf.gz",
         admixed = "data/replicate_{r}/admixed_{m}_{g2}_10.vcf.gz",

@@ -110,3 +110,36 @@ rule accuracy_sparsepainter:
         r"""
             julia -t {threads} --project=. src/julia/accuracy_sparsepainter.jl {input.est} {input.tru} {output.path}
         """
+rule benchmark_accuracy:
+    input:
+        expand("results/accuracy/gnomix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations, t = lathresholds),    
+        expand("results/accuracy/rfmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("results/accuracy/recombmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("results/accuracy/flare/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations)    
+    output:
+        "results/summary/accuracy.csv",
+        "results/summary/accuracy_sds.csv"
+    threads:
+        10
+    shell:
+        r"""
+            julia -t {threads} --project=. src/julia/result_accuracies.jl
+        """
+
+rule benchmark_computation_resources:
+    input:
+        expand("benchmarks/gnomix/{r}_{m}_{g1}_{g2}.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("benchmarks/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations, t = lathresholds),    
+        expand("benchmarks/rfmix/{r}_{m}_{g1}_{g2}.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("benchmarks/recombmix/{r}_{m}_{g1}_{g2}.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("benchmarks/sparsepainter/{r}_{m}_{g1}_{g2}.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations),    
+        expand("benchmarks/flare/{r}_{m}_{g1}_{g2}.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations)    
+    output:
+        "results/summary/RAM_use_mean.csv",
+        "results/summary/time_use_mean.csv"
+    shell:
+        r"""
+            julia --project=. src/julia/result_benchmark.jl
+        """

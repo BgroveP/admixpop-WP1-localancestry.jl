@@ -12,13 +12,11 @@ generations: [6, 8, 10]
 populations: ["AFR", "EAS", "EUR"]
 cohorts: ["ancestral", "admixed"]
 markersets: ["array", "sequence"]
-lathresholds: [0.00, 0.20, 0.40, 0.60, 0.80, 1.00]
 lathresholds: [0.66]
 
 # --- Test variables --- #
-#replicates: [1, 2]
-#lathresholds: [0.60, 0.80]
-#markersets: ["array"]
+replicates: [1, 2]
+markersets: ["array"]
 
 # --- Paths ---
 data_dir: "data"

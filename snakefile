@@ -32,33 +32,25 @@ zenodocontent = config["paths"]["zenodocontent"]
 # Download the compressed file from Zenodo
 rule comparison:
     input:
-        "Project.toml",
-        expand("results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations, t = lathresholds),
-        expand("results/accuracy/rfmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/flare/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        #expand("results/accuracy/flareclust/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/gnomix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/recombmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations)
+        "plots/accuracy_ancgen.png",
+        "plots/accuracy_software.png",
+        "plots/sensitivities.png",
+        "plots/accuracy_blocksize.png"
     resources:
         mem_mb = 100000,
         runtime = 180
     output:
-        "results/summary/RAM_use_mean.csv",
-        "results/summary/RAM_use_max.csv",
-        "results/summary/time_use_mean.csv",
-        "results/summary/time_use_max.csv",
-        "plots/Accuracy_chromosomewide.png",
-        "plots/Accuracy_chromosomewide_localancestryjl_thresholds.png"
+        "finished.txt"
     threads: 24
     shell:
         r"""
-        julia --project=. src/julia/result_benchmark.jl
-        julia --project=. src/julia/result_accuracies.jl
+        touch finished.txt
         """
 
 # 
-include: "rules/softwaresetup.smk"
-include: "rules/dataprep.smk"
-include: "rules/localancestry.smk"
-include: "rules/benchmark.smk"
+include: "rules/1. dataprep.smk"
+include: "rules/2. softwaresetup.smk"
+include: "rules/3. localancestry.smk"
+include: "rules/4. benchmark.smk"
+include: "rules/5. iablocksVSfixedblocks.smk"
+include: "rules/6. plots.smk"

@@ -17,6 +17,12 @@ thresholds = reverse(0.2:0.05:1.1)
 replicates = rand(1:30, 30)
 markersets = reverse(["array", "sequence"])
 
+# Test
+blocksizes = 0.0:0.0005:0.0015
+thresholds = 0.5:0.1:1.1
+replicates = 1:2
+markersets = reverse(["array", "sequence"])
+
 # Constants
 gmappath = "data/rfmix_sequence.tsv"
 gmappath2 = "data/rfmix_array.tsv"

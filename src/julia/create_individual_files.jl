@@ -5,7 +5,8 @@ using DataFrames
 datapath = "data"
 replicatepaths = readdir(datapath, join = true)
 replicatepaths = replicatepaths[contains.(replicatepaths, "replicate_" )]
-steps = [6,8,10]
+# Generations (first generation of each panel), e.g. "6,8,10"
+steps = length(ARGS) >= 1 ? parse.(Int, split(ARGS[1], ",")) : [6, 8, 10]
 
 for r in replicatepaths
 

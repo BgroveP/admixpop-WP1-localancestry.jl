@@ -28,3 +28,7 @@ logs
 # Files made with snakemake
 nohup.out
 checkpoint.txt
+
+# Pipeline outputs / local scratch
+finished.txt
+scratch

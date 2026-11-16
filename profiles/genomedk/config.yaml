@@ -1,10 +1,14 @@
-# profiles/slurm/config.yaml
+# GenomeDK (SLURM executor plugin)
 executor: slurm
 jobs: 10000
 latency-wait: 60
 retries: 1
+# Per-system settings: where large raw tool output is written.
+config:
+  - "tmpdir=scratch"
 default-resources:
   slurm_account: "admixpop"
   mem_mb: 5000
   runtime: 60
   slurm_nodelist: "cn-[1060-1110]"
+rerun-triggers: mtime

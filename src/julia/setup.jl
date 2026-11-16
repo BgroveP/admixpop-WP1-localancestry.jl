@@ -1,19 +1,30 @@
 
-# Load the Pkg manager
+# Install the Julia packages used by the pipeline and build a system image for LocalAncestry.jl.
+# Usage: julia --project=. src/julia/setup.jl <LocalAncestry version> <QGIO commit>
+# (called by the Snakemake rule `setup_julia`; versions are set in config.yaml)
+# Run it through a cluster profile so it is compiled on a compute node, e.g.
+#   pixi run snakemake --profile profiles/ghpcaudk setup_julia
+
 using Pkg
 
-# Install official packages
-Pkg.add(["DataFrames", "CSV", "StatsBase", "PackageCompiler", "CodecZlib", "Combinatorics", "AlgebraOfGraphics", "CairoMakie"])
-Pkg.add(name="LocalAncestry", version="0.4.0")
+localancestry_version = length(ARGS) >= 1 ? ARGS[1] : "0.3.1"
+qgio_commit = length(ARGS) >= 2 ? ARGS[2] : "c196f98fbffc372913de72b4c22af4207cba2f0f"
 
-# Install a VCF parser from github
-Pkg.add(url= "https://github.com/BgroveP/QGIO.jl", rev="c196f98fbffc372913de72b4c22af4207cba2f0f")
+# Install registered packages
+Pkg.add(["DataFrames", "CSV", "StatsBase", "PackageCompiler", "CodecZlib", "Combinatorics", "AlgebraOfGraphics", "CairoMakie"])
+Pkg.add(name="LocalAncestry", version=localancestry_version)
+
+# Install a VCF parser from GitHub
+Pkg.add(url="https://github.com/BgroveP/QGIO.jl", rev=qgio_commit)
 
 # Compile system image
 using PackageCompiler
+mkpath("deps")
 create_sysimage(
     [:CSV, :DataFrames, :LocalAncestry, :CodecZlib];
     sysimage_path = "deps/localancestry.so",
+    # Portable across x86-64 CPU generations: the image may be built on a different
+    # node type than the one that later uses it
+    cpu_target = PackageCompiler.default_app_cpu_target(),
     precompile_execution_file = "deps/precompile_workload.jl"
 )
-

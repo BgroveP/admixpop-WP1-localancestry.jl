@@ -1,11 +1,25 @@
 
+# LocalAncestry.jl: accuracy for a grid of maximum block sizes x IA thresholds.
+# Uses the smallest panels (reference and target from generation 10 only).
+# The script writes one file per (block size, threshold); the declared output is
+# the last file written for each (marker set, replicate) and marks completion.
+
 rule compare_IAblocks_with_fixedblocks:
     input:
-        expand("results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}.tsv", r = replicates, m = markersets, g1 = generations, g2 = generations, t = lathresholds),    
+        JULIA_ENV,
+        "src/julia/comparison_block_vs_IA.jl",
+        "src/julia/collection.jl",
+        "data/rfmix_sequence.tsv",
+        "data/rfmix_array.tsv",
+        ref = "data/replicate_{r}/ancestral_{m}_10_10.vcf.gz",
+        adm = "data/replicate_{r}/admixed_{m}_10_10.vcf.gz",
+        anc = "data/replicate_{r}/global_ancestries.csv",
+        tru = "data/replicate_{r}/local_ancestries.csv",
     output:
-        expand("results/blocks/{m}_{r}_0.001_1.1.csv", r = replicates, m = markersets)
+        "results/blocks/{m}_{r}_0.001_1.1.csv"
     threads: 10
+    resources:
+        mem_mb = lambda wc: _mem("localancestryjl", wc.m),
+        runtime = lambda wc: 60 * _runtime("localancestryjl", wc.m),
     shell:
-        r"""
-            julia -t {threads} --project=. src/julia/comparison_block_vs_IA.jl
-        """
+        "julia -t {threads} --project=. src/julia/comparison_block_vs_IA.jl {wildcards.m} {wildcards.r}"

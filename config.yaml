@@ -1,72 +1,72 @@
-
 # ============================================================
 # Experiment configuration
 # ============================================================
 
-# --- Simulation parameters ---
-## Variables
+# --- Simulation design ---------------------------------------------------
 replicates: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-            21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+             11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+             21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+# Generations used to build reference (ancestral) and target (admixed) panels.
+# "6" means generations 6-10, "8" means 8-10 and "10" means generation 10 only.
 generations: [6, 8, 10]
 populations: ["AFR", "EAS", "EUR"]
 cohorts: ["ancestral", "admixed"]
 markersets: ["array", "sequence"]
+
+# Thresholds passed to LocalAncestry.jl (`threshold=` keyword).
+# The FIRST value is used as the default threshold in summary tables and plots.
 lathresholds: [0.66]
 
-# --- Test variables --- #
-replicates: [1, 2]
-markersets: ["array"]
+# --- Local ancestry tools to compare ---------------------------------------
+# "flareclust" (FLARE with clustered reference panels) is available but optional.
+tools: ["localancestryjl", "flare", "rfmix", "recombmix", "sparsepainter", "gnomix"]
 
-# --- Paths ---
-data_dir: "data"
-results_dir: "results"
+# Run the (expensive) LocalAncestry.jl block-size vs. IA-threshold experiment
+# and produce plots/accuracy_blocksize.png.
+run_block_comparison: true
 
-# --- Zenodo dataset ---
+# --- Paths -----------------------------------------------------------------
 paths:
   zenodourl: "https://zenodo.org/records/19544041/files/simulated_data.tgz?download=1"
   zenodocontent: ["admixed.vcf.gz", "admixed.vcf.gz.tbi", "ancestral.vcf.gz", "ancestral.vcf.gz.tbi", "global_ancestries.csv", "local_ancestries.csv"]
   zenodopath: "data/tmp/simulated_data.tgz"
-  tmpdir: "/usr/home/ironbank/researchdata/bgp_public/admixpop-WP1-localancestry.jl"
 
-# --- 1000 Genomes reference data ---
-genomes1k:
-  chr: "22"
-  maf: 0.005
-  ancestry_groups: ["AFR", "EAS", "EUR"]
-  global_ancestry_cutoff: 0.99
+# NOTE: `tmpdir` (where the large raw output of each tool is written) is set per
+# system in the Snakemake profile (profiles/<name>/config.yaml), not here.
 
-# --- Tool versions (pinned) ---
-versions:
-  localancestry: "0.3.0"
-  flare: "browning-lab/flare"        # repo or tag/commit
-  recombmix: "ucfcbb/Recomb-Mix"
-  rfmix: "slowkoni/rfmix"
+# --- Software versions (pinned for reproducibility) ------------------------
+software:
+  localancestry: "0.3.1"   
+  qgio_commit: "c196f98fbffc372913de72b4c22af4207cba2f0f"
+  flare_commit: "d6a6c8fd4479ebdb68529824acd11d2b6bbac4a1"
+  rfmix_commit: "09599c19c69f81571c7a7aab4cd2d847a9e0633a"
+  recombmix_commit: "41616840ccdfd456c7645c4ee651450a890994d5"
+  sparsepainter_commit: "ed91149c5ecf795daba28711e08138f8abb00f68"
+  gnomix_commit: "cd15f65eadfca8e2bbf209eb69a82978a200c5fd"  
 
-# Resource calibration from benchmark replicates (max observed × safety margin)
-# runtime: minutes, mem_mb: MB. Missing markerset/tool -> fallback in Snakefile.
+# --- Resources per tool and marker set -------------------------------------
 estimatelimits:
+  default:
+    array:    {runtime: 120,  mem_mb: 50000}
+    sequence: {runtime: 1500, mem_mb: 450000}
   localancestryjl:
     array:    {runtime: 10,   mem_mb: 10000}
     sequence: {runtime: 15,   mem_mb: 30000}
   recombmix:
-    array:    {runtime: 5,   mem_mb: 1000}
-    sequence: {runtime: 30,  mem_mb: 2000}
+    array:    {runtime: 5,    mem_mb: 1000}
+    sequence: {runtime: 30,   mem_mb: 2000}
   flare:
-    array:    {runtime: 5,   mem_mb: 8000}
-    sequence: {runtime: 25,  mem_mb: 24000}
+    array:    {runtime: 5,    mem_mb: 8000}
+    sequence: {runtime: 25,   mem_mb: 24000}
   flareclust:
-    array:    {runtime: 5,   mem_mb: 8000}
-    sequence: {runtime: 25,  mem_mb: 20000}    
+    array:    {runtime: 5,    mem_mb: 8000}
+    sequence: {runtime: 25,   mem_mb: 20000}
   rfmix:
-    array:    {runtime: 100, mem_mb: 24000}
-    sequence: {runtime: 1000, mem_mb: 100000}  
+    array:    {runtime: 100,  mem_mb: 24000}
+    sequence: {runtime: 1000, mem_mb: 100000}
   sparsepainter:
-    array:    {runtime: 60,  mem_mb: 50000}
-    sequence: {runtime: 1500, mem_mb: 400000}  
+    array:    {runtime: 60,   mem_mb: 50000}
+    sequence: {runtime: 1500, mem_mb: 400000}
   gnomix:
-    array:    {runtime: 70,  mem_mb: 45000}
-    sequence: {runtime: 200, mem_mb: 450000}  
-
-
-    
+    array:    {runtime: 70,   mem_mb: 45000}
+    sequence: {runtime: 200,  mem_mb: 450000}

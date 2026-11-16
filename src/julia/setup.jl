@@ -10,17 +10,23 @@ using Pkg
 localancestry_version = length(ARGS) >= 1 ? ARGS[1] : "0.3.1"
 qgio_commit = length(ARGS) >= 2 ? ARGS[2] : "c196f98fbffc372913de72b4c22af4207cba2f0f"
 
-# Install registered packages
-Pkg.add(["DataFrames", "CSV", "StatsBase", "PackageCompiler", "CodecZlib", "Combinatorics", "AlgebraOfGraphics", "CairoMakie"])
-Pkg.add(name="LocalAncestry", version=localancestry_version)
+# Do not precompile after each Pkg.add; everything is precompiled once below
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = "0"
 
-# Install a VCF parser from GitHub
-Pkg.add(url="https://github.com/BgroveP/QGIO.jl", rev=qgio_commit)
+# Install all packages in a single resolve: registered packages, LocalAncestry.jl at the
+# pinned version and a VCF parser from GitHub
+Pkg.add([
+    [PackageSpec(name = p) for p in ["DataFrames", "CSV", "StatsBase", "PackageCompiler", "CodecZlib",
+                                     "Combinatorics", "AlgebraOfGraphics", "CairoMakie"]];
+    PackageSpec(name = "LocalAncestry", version = localancestry_version);
+    PackageSpec(url = "https://github.com/BgroveP/QGIO.jl", rev = qgio_commit)
+])
 
 # Make sure everything in the manifest is installed, then precompile all packages once,
 # here, for the current JULIA_CPU_TARGET. Otherwise the first pipeline jobs would all
 # precompile the same packages in parallel (slow, and fragile on a shared depot).
 println("JULIA_CPU_TARGET = ", get(ENV, "JULIA_CPU_TARGET", "(not set: caches are only valid for this CPU type)"))
+println("Parallel precompile tasks = ", get(ENV, "JULIA_NUM_PRECOMPILE_TASKS", "(default)"))
 Pkg.instantiate()
 Pkg.precompile(strict = true)   # fail the job if any package does not precompile
 

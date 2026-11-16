@@ -86,6 +86,8 @@ def final_plots(wildcards):
     plots = ["plots/accuracy_ancgen.png", "plots/accuracy_software.png", "plots/sensitivities.png"]
     if config.get("run_block_comparison", True):
         plots.append("plots/accuracy_blocksize.png")
+    if config.get("run_realdata", False):
+        plots.append("results/realdata/summary.csv")
     return plots
 
 
@@ -106,3 +108,4 @@ include: "rules/3. localancestry.smk"
 include: "rules/4. benchmark.smk"
 include: "rules/5. iablocksVSfixedblocks.smk"
 include: "rules/6. plots.smk"
+include: "rules/7. realdata.smk"

@@ -120,6 +120,24 @@ permutation that maximizes overlap with the truth.
 
 Draw the rule graph with `bash src/snakemake_plotdag.sh` (writes `plots/dag.png`).
 
+### Real data (`rules/7. realdata.smk`)
+
+LocalAncestry.jl is also run genome-wide (chromosomes 1–22) on an admixed 1000 Genomes
+Phase 3 population (default: ACB). Results are compared with the published 1000 Genomes
+local ancestry calls (RFMix v1.5.4,
+[20140818_ancestry_deconvolution](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20140818_ancestry_deconvolution/)).
+Settings are under `realdata` in `config.yaml`, and `run_realdata` turns the analysis on or off.
+
+- **Data:** the Phase 3 release VCFs (GRCh37, the same build as the published calls), restricted to biallelic SNPs with MAF ≥ 0.005.
+- **References:** YRI (AFR) and CEU (EUR), the populations behind the published calls.
+- **`totcm`:** each chromosome's genetic length, taken from the cM columns of the published calls.
+- **Main metric:** diploid concordance, i.e. agreement in the number of AFR copies at each locus. It does not depend on phasing. Haplotype concordance is also reported, but the published "PopPhased" calls were re-phased, so their haplotype order can differ from the VCF.
+- **Excluded loci:** loci where the published call is UNK (posterior < 0.9), NAT, centromere or miscall. Their share is reported as `published_excluded`.
+
+Outputs in `results/realdata/`: `summary.csv` (per chromosome and genome-wide), `individuals.csv`
+(global AFR proportion per individual, published vs. LocalAncestry.jl) and `resources.csv`
+(runtime and peak memory per chromosome and genome-wide).
+
 ## Main outputs
 
 - `results/summary/accuracy.csv`, `accuracy_sds.csv`: mean accuracy (and SD across replicates) per scenario and tool

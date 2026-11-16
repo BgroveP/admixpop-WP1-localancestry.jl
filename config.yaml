@@ -25,6 +25,24 @@ tools: ["localancestryjl", "flare", "rfmix", "recombmix", "sparsepainter", "gnom
 # and produce plots/accuracy_blocksize.png.
 run_block_comparison: true
 
+# Run LocalAncestry.jl on real 1000 Genomes data (settings in `realdata` below)
+# and compare with the published 1000 Genomes Phase 3 local ancestry calls.
+run_realdata: true
+
+# --- Real data: 1000 Genomes Phase 3 (GRCh37) ------------------------------
+realdata:
+  target: "ACB"                     # admixed population; must have published calls
+  references:                       # ancestry label -> 1000 Genomes populations
+    AFR: ["YRI"]                    # YRI and CEU match the references used for
+    EUR: ["CEU"]                    # the published (RFMix) calls
+  chromosomes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+  maf: 0.005                        # minimum MAF in reference + target samples
+  deconvolution_mode: "PopPhased"   # "PopPhased" (published calls) or "TrioPhased"
+  vcfurl: "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz"
+  panelurl: "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/integrated_call_samples_v3.20130502.ALL.panel"
+  deconvolutionurl: "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20140818_ancestry_deconvolution/{target}_phase3_ancestry_deconvolution.zip"
+  limits: {runtime: 240, mem_mb: 64000}   # LocalAncestry.jl per chromosome
+
 # --- Paths -----------------------------------------------------------------
 paths:
   zenodourl: "https://zenodo.org/records/19544041/files/simulated_data.tgz?download=1"

@@ -11,6 +11,8 @@ using StatsBase
 vcfpath = ARGS[1]
 truelapath = ARGS[2]
 outpath = ARGS[3]
+# VCF whose loci are used to translate window end positions (the target VCF of the run)
+locipath = length(ARGS) >= 4 ? ARGS[4] : replace(truelapath, "local_ancestries.csv" => "admixed_sequence_10_10.vcf.gz")
 
 # Read custom function
 println("Reading custom functions")
@@ -28,7 +30,7 @@ gmappath2 = "data/rfmix_array.tsv"
 
 # Read
 println("Reading data")
-est = read_rfmix(vcfpath, QGIO.loci(replace(truelapath, "local_ancestries.csv" => "admixed_sequence_10_10.vcf.gz")))
+est = read_rfmix(vcfpath, QGIO.loci(locipath))
 tru = CSV.read(truelapath, DataFrame)
 gmap = CSV.read(gmappath, DataFrame, header = ["chromosome", "position(bp)", "distance"])
 gmap2 = CSV.read(gmappath2, DataFrame, header = ["chromosome", "position(bp)", "distance"])

@@ -7,7 +7,11 @@ cluster-generic-submit-cmd:
     --output=logs/slurm/%x.txt
 jobs: 10000
 retries: 2
+# Per-system settings: where large raw tool output is written.
+config:
+  - "tmpdir=/usr/home/ironbank/researchdata/bgp_public/admixpop-WP1-localancestry.jl"
 default-resources:
   mem_mb: 5000
   runtime: 60
   tmpdir: "/usr/home/ironbank/researchdata/bgp_public/admixpop-WP1-localancestry.jl"
+rerun-triggers: mtime

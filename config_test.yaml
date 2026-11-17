@@ -1,0 +1,5 @@
+# Small test configuration. Overrides config.yaml when passed with
+#   pixi run snakemake --profile profiles/local --configfile config_test.yaml
+replicates: [1, 2]
+markersets: ["array"]
+run_block_comparison: false

@@ -6,9 +6,17 @@ using CSV
 using DataFrames
 using StatsBase
 
-# Paths 
+# Usage: julia --project=. src/julia/result_sensitivity.jl <tool1,tool2,...> <default threshold>
+
+# Input
 resultspath = "results/summary/"
-defaultt = 0.6
+softwares = length(ARGS) >= 1 ? String.(split(ARGS[1], ",")) :
+            ["flare", "recombmix", "gnomix", "localancestryjl", "rfmix", "sparsepainter"]
+defaultt = length(ARGS) >= 2 ? parse(Float64, ARGS[2]) : 0.66
+mkpath("plots")
+tooldict = Dict("flare" => "FLARE", "flareclust" => "FLARE (clustered)", "localancestryjl" => "LocalAncestry.jl",
+                "gnomix" => "Gnomix", "recombmix" => "Recomb-Mix",
+                "rfmix" => "RFMix", "sparsepainter" => "SparsePainter")
 
 # Read
 accuracy = CSV.read(resultspath * "accuracy.csv", DataFrame)
@@ -22,13 +30,15 @@ timeuse.statistic .= "time"
 
 # Remove the Sequence -> Array rows
 deleteat!(accuracy, accuracy.array .& (accuracy.markerset .== "sequence"))
-o = vcat(accuracy[:, Not("array")], RAMuse[:, Not("flareclust")], timeuse[:, Not("flareclust")])
+softwares = intersect(softwares, names(accuracy), names(RAMuse), names(timeuse))
+keepcols = [["ancgen", "admgen", "markerset", "threshold", "statistic"]; softwares]
+o = vcat(accuracy[:, keepcols], RAMuse[:, keepcols], timeuse[:, keepcols])
 
 # Remove non-default thresholds
 deleteat!(o, o.threshold .!= defaultt)
 
 # Stack
-olong = stack(o, [:flare, :recombmix, :gnomix, :localancestryjl, :rfmix, :sparsepainter], variable_name = "software")
+olong = dropmissing(stack(o, softwares, variable_name = "software"), :value)
 
 # Calculate the sensitivity to reference panel size
 grcols = [:software, :markerset, :admgen, :statistic]
@@ -52,10 +62,7 @@ oloong.variable = replace.(oloong.variable, "relanc" => "Reference", "reladm" =>
 oloong.ancgen = replace.(string.(oloong.ancgen), "6" => "REF6-10", "8" => "REF8-10", "10" => "REF10")
 oloong.admgen = replace.(string.(oloong.admgen), "6" => "ADM6-10", "8" => "ADM8-10", "10" => "ADM10")
 oloong.markerset = replace.(string.(oloong.markerset), "array" => "Array", "sequence" => "Sequence")
-oloong.software = replace.(string.(oloong.software), 
-							"flare" => "FLARE", "localancestryjl" => "LocalAncestry.jl", 
-							"gnomix" => "Gnomix", "recombmix" => "Recomb-Mix", 
-							"rfmix" => "RFMix", "sparsepainter" => "SparsePainter")
+oloong.software = [get(tooldict, s, s) for s in string.(oloong.software)]
 
 # Make the x columns
 oloong.x .= ""
@@ -104,7 +111,6 @@ fig = draw(tmpplot,
     figure = (; size = (1000, 450)),
 	legend=(; position = :right, tellwidth = true), axis = (; xticklabelrotation = pi/4, yscale = log10), facet=(; linkxaxes=:colwise, linkyaxes=:rowwise))
 
-
 xlims!(fig.figure.content[1], 6.5,8.5)
 xlims!(fig.figure.content[2], 6.5,8.5)
 xlims!(fig.figure.content[3], 6.5,8.5)
@@ -116,31 +122,6 @@ xlims!(fig.figure.content[8], 0.8,3.2)
 xlims!(fig.figure.content[9], 0.8,3.2)
 save("plots/sensitivities.png", fig, px_per_unit = 2)
 save("plots/sensitivities.pdf", fig, px_per_unit = 2)
-
-### Create only the subplot with RFmix as x-axis
-orfmix = stack(o, [:flare, :recombmix, :gnomix, :sparsepainter, :localancestryjl], variable_name = "software", value_name = "accuracy")
-deleteat!(orfmix, orfmix.statistic .!= "accuracy")
-orfmix.software = replace.(string.(orfmix.software), 
-							"flare" => "FLARE", "localancestryjl" => "LocalAncestry.jl", 
-							"gnomix" => "Gnomix", "recombmix" => "Recomb-Mix", 
-							"rfmix" => "RFMix", "sparsepainter" => "SparsePainter")
-
-tmpplot =
-	data(orfmix) *
-	mapping(
-		:rfmix => "Accuracy (RFMix)",
-		:accuracy => "Accuracy (Other)",
-		color = :software => "LAI tool") *
-	visual(Scatter) +
-	data(DataFrame(value = [minimum(orfmix.rfmix), maximum(orfmix.rfmix)], value2 = [minimum(orfmix.accuracy), maximum(orfmix.accuracy)])) * 
-	mapping(
-		:value2 => "Accuracy (RFMix)",
-		:value => "Accuracy (Other)") * visual(Lines)
-
-fig = draw(tmpplot)
-
-save("plots/accuracy_vs_rfmix.png", fig)
-save("plots/accuracy_vs_rfmix.pdf", fig)
 
 # Numbers for the article
 ### Average accuracies across all scenarios
@@ -155,7 +136,7 @@ tmp
 ### Average increase from using Sequence map
 deleteat!(tmp, tmp.statistic .!= "accuracy")
 tmpw = unstack(tmp[:, Not(:std)], :markerset, :mean)
-mean(tmpw.sequence - tmpw.array)
+all(in(names(tmpw)), ["sequence", "array"]) && println("Mean accuracy increase sequence vs array: ", mean(tmpw.sequence - tmpw.array))
 
 ### Increase in accuracy from using larger reference panel
 mean(olong[(olong.statistic .== "accuracy") .& (olong.ancgen .!= 10),:value]) -

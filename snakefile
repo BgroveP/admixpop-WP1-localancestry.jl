@@ -1,19 +1,44 @@
 import re
 
-# Configfile
+# ============================================================
+# Comparison of local ancestry inference tools
+#   Default target: `finished.txt` (all summaries and plots).
+#   See README.md for usage.
+# ============================================================
+
 configfile: "config.yaml"
 
-# Load variables from the config file
-replicates = config["replicates"]       # r
-generations = config["generations"]     # g
-populations = config["populations"]     # p
-cohorts = config["cohorts"]     # p
-markersets = config["markersets"]       # m
-lathresholds = config["lathresholds"]  # t
+# --- Variables from the config file (wildcard name in brackets) ---
+replicates   = config["replicates"]     # {r}
+generations  = config["generations"]    # {g}, {g1} (reference), {g2} (target)
+populations  = config["populations"]    # {p}
+cohorts      = config["cohorts"]        # {c}
+markersets   = config["markersets"]     # {m}
+lathresholds = config["lathresholds"]   # {t}
+tools        = config["tools"]
+
+ALL_MARKERSETS = ["array", "sequence"]  # genomic maps are always built for both
+# Raw tool output location. Set per system in the profile (`config: ["tmpdir=..."]`)
+# or on the command line with --config tmpdir=...
+if not config.get("tmpdir"):
+    raise ValueError(
+        "No 'tmpdir' configured. Use a profile that sets it (e.g. --profile profiles/local) "
+        "or add --config tmpdir=/path/to/large/storage. Note that passing --config on the "
+        "command line replaces the profile's `config` entries, so include tmpdir=... as well."
+    )
+LA_DIR = str(config["tmpdir"]).rstrip("/") + "/localancestry"
+DEFAULT_THRESHOLD = lathresholds[0]
+
+KNOWN_TOOLS = ["localancestryjl", "flare", "flareclust", "rfmix", "recombmix", "sparsepainter", "gnomix"]
+_unknown = set(tools) - set(KNOWN_TOOLS)
+if _unknown:
+    raise ValueError(f"Unknown tool(s) in config 'tools': {sorted(_unknown)}. Known tools: {KNOWN_TOOLS}")
+
 
 def wc_constraint(values):
     alts = sorted((re.escape(str(v)) for v in values), key=len, reverse=True)
     return "|".join(alts)
+
 
 wildcard_constraints:
     r = wc_constraint(replicates),
@@ -26,39 +51,58 @@ wildcard_constraints:
     t = wc_constraint(lathresholds)
 
 
-#
-zenodocontent = config["paths"]["zenodocontent"]
+# --- Helpers ---
+def _limits(tool, markerset):
+    limits = config["estimatelimits"]
+    return limits.get(tool, {}).get(markerset, limits["default"][markerset])
 
-# Download the compressed file from Zenodo
+
+def _runtime(tool, markerset):
+    return _limits(tool, markerset)["runtime"]
+
+
+def _mem(tool, markerset):
+    return _limits(tool, markerset)["mem_mb"]
+
+
+def tool_files(pattern):
+    """Expand `pattern` ({tool} plus the usual wildcards) for every configured tool.
+    LocalAncestry.jl files additionally carry the threshold `_{t}`."""
+    out = []
+    for tool in tools:
+        suffix = "_{t}" if tool == "localancestryjl" else ""
+        out += expand(pattern.replace("{tool}", tool).replace("{suffix}", suffix),
+                      r=replicates, m=markersets, g1=generations, g2=generations, t=lathresholds)
+    return list(dict.fromkeys(out))  # de-duplicate, keep order
+
+
+# Every Julia script needs the packages and system image created by `setup_julia`.
+# `ancient` prevents a rebuild of the image from re-triggering the whole pipeline.
+JULIA_ENV = ancient("deps/localancestry.so")
+
+
+# --- Final target ---
+def final_plots(wildcards):
+    plots = ["plots/accuracy_ancgen.png", "plots/accuracy_software.png", "plots/sensitivities.png"]
+    if config.get("run_block_comparison", True):
+        plots.append("plots/accuracy_blocksize.png")
+    return plots
+
+
+localrules: comparison
+
 rule comparison:
     input:
-        "Project.toml",
-        expand("results/accuracy/localancestryjl/{r}_{m}_{g1}_{g2}_{t}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations, t = lathresholds),
-        expand("results/accuracy/rfmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/flare/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        #expand("results/accuracy/flareclust/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/gnomix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/recombmix/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations),
-        expand("results/accuracy/sparsepainter/{r}_{m}_{g1}_{g2}.csv", r = replicates, m = markersets, g1 = generations, g2 = generations)
-    resources:
-        mem_mb = 100000,
-        runtime = 180
+        final_plots
     output:
-        "results/summary/RAM_use_mean.csv",
-        "results/summary/RAM_use_max.csv",
-        "results/summary/time_use_mean.csv",
-        "results/summary/time_use_max.csv",
-        "plots/Accuracy_chromosomewide.png",
-        "plots/Accuracy_chromosomewide_localancestryjl_thresholds.png"
-    threads: 24
+        "finished.txt"
     shell:
-        r"""
-        julia --project=. src/julia/result_benchmark.jl
-        julia --project=. src/julia/result_accuracies.jl
-        """
+        "touch {output}"
 
-# 
-include: "rules/softwaresetup.smk"
-include: "rules/dataprep.smk"
-include: "rules/localancestry.smk"
-include: "rules/benchmark.smk"
+
+include: "rules/1. dataprep.smk"
+include: "rules/2. softwaresetup.smk"
+include: "rules/3. localancestry.smk"
+include: "rules/4. benchmark.smk"
+include: "rules/5. iablocksVSfixedblocks.smk"
+include: "rules/6. plots.smk"

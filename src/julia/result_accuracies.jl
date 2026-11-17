@@ -22,6 +22,7 @@ o = Vector{Vector{DataFrame}}(undef, nsoftwares)
 @threads for i in axes(softwares, 1)
     s = softwares[i]
     b = readdir("results/accuracy/$(s)", join = true)
+    s == "localancestryjl" ? b = b[occursin.("$(defaultt).csv", b)] : nothing
     o[i] = Vector{DataFrame}(undef, length(b))
     
     for (ji, j) in enumerate(b)
